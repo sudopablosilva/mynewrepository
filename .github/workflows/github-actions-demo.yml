@@ -2,6 +2,7 @@ name: GitHubActionsDemo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 on:
+# https://docs.github.com/en/free-pro-team@latest/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
   workflow_dispatch:
     inputs:
       logLevel:
@@ -21,7 +22,9 @@ on:
         description: 'Test scenario tags'
         required: true
         type: string
-
+  repository_dispatch:
+    types: [on-demand-test]
+    
 jobs:
   print-tag:
     runs-on: ubuntu-latest
