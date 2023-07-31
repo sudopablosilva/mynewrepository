@@ -22,6 +22,18 @@ on:
         description: 'Test scenario tags'
         required: true
         type: string
+      subsys:
+        type: string
+      package:
+        type: string
+      funcao:
+        type: string
+      sitename:
+        type: string
+      jobsuccess:
+        type: string
+      jobfailed:
+        type: string
   repository_dispatch:
     types: [on-demand-test]
     
@@ -30,5 +42,15 @@ jobs:
     runs-on: ubuntu-latest
     if:  ${{ inputs.print_tags }} 
     steps:
-      - name: Print the input tag to STDOUT
-        run: echo  The tags are ${{ inputs.tags }} 
+      - name: Print subsys tag to STDOUT
+        run: echo The subsys value is {{ inputs.subsys}}
+      - name: Print package tag to STDOUT
+        run: echo The package value is {{ inputs.package}}
+      - name: Print funcao tag to STDOUT
+        run: echo The funcao value is {{ inputs.funcao}}
+      - name: Print sitename tag to STDOUT
+        run: echo The sitename value is {{ inputs.sitename}}
+      - name: Print jobsuccess tag to STDOUT
+        run: echo The jobsuccess value is {{ inputs.jobsuccess}}
+      - name: Print jobfailed tag to STDOUT
+        run: echo The jobfailed value is {{ inputs.jobfailed}}
