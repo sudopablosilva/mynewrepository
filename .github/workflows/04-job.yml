@@ -37,6 +37,9 @@ jobs:
       
 
   mythirdjob:
+    needs:
+      - myfirstjob
+      - mysecondjob
     runs-on: ubuntu-latest
     steps:
       - name: Show context
