@@ -46,6 +46,9 @@ jobs:
         run: echo "teste"
       - name: Code Quality
         run: echo "teste"
+      - name: Create annotation for build error
+        run: echo "::notice file=app.js,line=1::Missing semicolon"
+
       
   TestBetaStage:
     needs:
