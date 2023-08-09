@@ -1,0 +1,37 @@
+name: JFrogIntegrationWorkflow
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+      print_tags:
+        description: 'True to print to STDOUT'
+        required: true
+        type: boolean
+    
+jobs:
+  myfirstjob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: First echo step j1
+        run: echo "This is the logLevel ${{ inputs.logLevel }}"
+      - name: Second echo step j1
+        run: echo "This is the print_tags ${{ inputs.print_tags }} value"
+
+  mysecondjob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: First echo step j2
+        run: echo "This is the logLevel ${{ inputs.logLevel }}"
+      - name: Second echo step j2
+        run: "echo This is the print_tags ${{ inputs.print_tags }} value"
+      
