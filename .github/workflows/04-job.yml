@@ -35,3 +35,14 @@ jobs:
       - name: Second echo step j2
         run: "echo This is the print_tags ${{ inputs.print_tags }} value"
       
+
+  mythirdjob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show context
+        run: |
+          echo "${{ toJSON(github) }}"
+
+      - name: Show inputs
+        run: |
+          echo "${{ toJSON(inputs) }}"
