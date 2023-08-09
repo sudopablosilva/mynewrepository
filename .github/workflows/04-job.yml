@@ -1,4 +1,4 @@
-name: JFrogIntegrationWorkflow
+name: JFrogIntegrationWorkflow2
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 on:
