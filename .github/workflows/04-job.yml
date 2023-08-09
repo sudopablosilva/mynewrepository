@@ -19,33 +19,78 @@ on:
         type: boolean
     
 jobs:
-  myfirstjob:
+  sourceStage:
     runs-on: ubuntu-latest
     steps:
-      - name: First echo step j1
-        run: echo "This is the logLevel ${{ inputs.logLevel }}"
-      - name: Second echo step j1
-        run: echo "This is the print_tags ${{ inputs.print_tags }} value"
+      - name: Application Source
+        run: echo "test"
+      - name: Test Source
+        run: echo "teste"
+      - name: Infrastructure Source
+        run: echo "teste"
+      - name: Static Assets
+        run: echo "teste"
+      - name: Dependency Manifest
+        run: echo "teste"
+      - name: Configuration
+        run: echo "teste"
 
-  mysecondjob:
+  buildStage:
     runs-on: ubuntu-latest
-    steps:
-      - name: First echo step j2
-        run: echo "This is the logLevel ${{ inputs.logLevel }}"
-      - name: Second echo step j2
-        run: "echo This is the print_tags ${{ inputs.print_tags }} value"
-      
-
-  mythirdjob:
     needs:
-      - myfirstjob
-      - mysecondjob
+      - sourceStage
+    steps:
+      - name: Build Code
+        run: echo "teste"
+      - name: Unit Tests
+        run: echo "teste"
+      - name: Code Quality
+        run: echo "teste"
+      
+  TestBetaStage:
+    needs:
+      - buildStage
     runs-on: ubuntu-latest
     steps:
-      - name: Show context
+      - name: Launch Environment
         run: |
-          echo "${{ toJSON(github) }}"
+          echo "teste"
+      - name: Deploy Software
+        run: |
+          echo "teste"
+      - name: Integration Tests
+        run: |
+          echo "teste"
 
-      - name: Show inputs
+  TestGammaStage:
+    needs:
+      - TestBetaStage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Launch Environment
         run: |
-          echo "${{ toJSON(inputs) }}"
+          echo "teste"
+      - name: Deploy Software
+        run: |
+          echo "teste"
+      - name: Synthetic Tests
+        run: |
+          echo "teste"
+      - name: DAST
+        run: |
+          echo "teste"
+          
+  ProdStage:
+    needs:
+      - TestBetaStage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manual Approval
+        run: |
+          echo "teste"
+      - name: Progressive Deployment
+        run: |
+          echo "teste"
+      - name: Synthetic Tests
+        run: |
+          echo "teste"
