@@ -82,7 +82,7 @@ jobs:
           
   ProdStage:
     needs:
-      - TestBetaStage
+      - TestGammaStage
     runs-on: ubuntu-latest
     steps:
       - name: Manual Approval
