@@ -71,4 +71,4 @@ jobs:
     steps:
       - name: Print Reusable output
         run: | 
-          echo "The output is: needs.call-workflow-passing-data.outputs.myoutput"
+          echo "The output is: ${{ needs.call-workflow-passing-data.outputs.myoutput }}"
