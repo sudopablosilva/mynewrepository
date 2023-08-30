@@ -9,13 +9,22 @@ on:
 
 
 jobs:
-  print-tag:
+  job1:
     outputs:
-      myoutput: ${{ steps.step5.outputs.myoutput }}
+      myoutput: ${{ steps.step1.outputs.myoutput }}
     runs-on: ubuntu-latest
     steps:
       - name: Print subsys
-        id: step5
+        id: step1
         run: |
           echo The subsys value is ${{ inputs.subsys}} from the ReusableWorkflow
-          echo "myoutput=myoutputvalue" >> $GITHUB_OUTPUT
+          echo "myoutput=myoutputvalue" >> "$GITHUB_OUTPUT"
+
+  job2:
+    needs: print-tag
+    runs-on: ubuntu-latest
+    steps:
+      - env: 
+          OUTPUT1: ${{needs.job1.outputs.myoutput}}
+        run: |
+          echo $OUTPUT1
