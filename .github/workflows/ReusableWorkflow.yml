@@ -6,6 +6,8 @@ on:
     inputs:
       subsys:
         type: string
+    outputs:
+      myworkflowoutput: ${{ jobs.jobs1.outputs.myoutput }}
 
 
 jobs:
