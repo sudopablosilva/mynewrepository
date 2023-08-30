@@ -21,7 +21,7 @@ jobs:
           echo "myoutput=myoutputvalue" >> "$GITHUB_OUTPUT"
 
   job2:
-    needs: print-tag
+    needs: job1
     runs-on: ubuntu-latest
     steps:
       - env: 
