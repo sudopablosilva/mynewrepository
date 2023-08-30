@@ -21,6 +21,8 @@ on:
 
 jobs:
   print-tag:
+    outputs:
+      myoutput: ${{ steps.step5.outputs.myoutput }}
     runs-on: ubuntu-latest
     steps:
       - name: Print subsys tag to STDOUT
@@ -32,6 +34,9 @@ jobs:
       - name: Print sitename tag to STDOUT
         run: echo The sitename value is ${{ inputs.sitename}} from the ReusableWorkflow
       - name: Print jobsuccess tag to STDOUT
-        run: echo The jobsuccess value is ${{ inputs.jobsuccess}} from the ReusableWorkflow
+        id: step5
+        run: |
+          echo The jobsuccess value is ${{ inputs.jobsuccess}} from the ReusableWorkflow
+          echo "myoutput::$(echo myvalue)" >> $GITHUB_OUTPUT
       - name: Print jobfailed tag to STDOUT
         run: echo The jobfailed value is ${{ inputs.jobfailed}} from the ReusableWorkflow
