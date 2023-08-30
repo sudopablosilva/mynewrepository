@@ -9,7 +9,7 @@ on:
     outputs:
       myworkflowoutput:
         description: "This is my workflow output"
-        value: ${{ jobs.jobs1.outputs.myoutput }}
+        value: ${{ jobs.job1.outputs.myoutput }}
 
 
 jobs:
