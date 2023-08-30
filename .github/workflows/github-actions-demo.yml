@@ -39,4 +39,4 @@ jobs:
     steps:
       - name: Print Reusable output
         run: | 
-          echo "The output is: ${{ needs.reusablejob.myworkflowoutput.myoutput }}"
+          echo "The output is: ${{ needs.reusablejob.outputs.myworkflowoutput }}"
