@@ -5,34 +5,7 @@ on:
 # https://docs.github.com/en/free-pro-team@latest/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-      print_tags:
-        description: 'True to print to STDOUT'
-        required: true
-        type: boolean
-      tags:
-        description: 'Test scenario tags'
-        required: true
-        type: string
       subsys:
-        type: string
-      package:
-        type: string
-      funcao:
-        type: string
-      sitename:
-        type: string
-      jobsuccess:
-        type: string
-      jobfailed:
         type: string
   repository_dispatch:
     types: [on-demand-test]
@@ -59,11 +32,6 @@ jobs:
     uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
     with:
       subsys: ${{ inputs.subsys }}
-      package: ${{ inputs.package }}
-      funcao: ${{ inputs.funcao }}
-      sitename: ${{ inputs.sitename }}
-      jobsuccess: ${{ inputs.jobsuccess }}
-      jobfailed: ${{ inputs.jobfailed }}
 
   anewjob:
     runs-on: ubuntu-latest

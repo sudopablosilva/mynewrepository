@@ -4,18 +4,7 @@ run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on:
   workflow_call:
     inputs:
-
       subsys:
-        type: string
-      package:
-        type: string
-      funcao:
-        type: string
-      sitename:
-        type: string
-      jobsuccess:
-        type: string
-      jobfailed:
         type: string
 
 
@@ -25,18 +14,8 @@ jobs:
       myoutput: ${{ steps.step5.outputs.myoutput }}
     runs-on: ubuntu-latest
     steps:
-      - name: Print subsys tag to STDOUT
-        run: echo The subsys value is ${{ inputs.subsys}} from the ReusableWorkflow
-      - name: Print package tag to STDOUT
-        run: echo The package value is ${{ inputs.package}} from the ReusableWorkflow
-      - name: Print funcao tag to STDOUT
-        run: echo The funcao value is ${{ inputs.funcao}} from the ReusableWorkflow
-      - name: Print sitename tag to STDOUT
-        run: echo The sitename value is ${{ inputs.sitename}} from the ReusableWorkflow
-      - name: Print jobsuccess tag to STDOUT
+      - name: Print subsys
         id: step5
         run: |
-          echo The jobsuccess value is ${{ inputs.jobsuccess}} from the ReusableWorkflow
-          echo "myoutput=$(echo myvalue)" >> $GITHUB_OUTPUT
-      - name: Print jobfailed tag to STDOUT
-        run: echo The jobfailed value is ${{ inputs.jobfailed}} from the ReusableWorkflow
+          echo The subsys value is ${{ inputs.subsys}} from the ReusableWorkflow
+          echo "myoutput=myoutputvalue" >> $GITHUB_OUTPUT
