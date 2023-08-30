@@ -37,6 +37,6 @@ jobs:
         id: step5
         run: |
           echo The jobsuccess value is ${{ inputs.jobsuccess}} from the ReusableWorkflow
-          echo "myoutput::$(echo myvalue)" >> $GITHUB_OUTPUT
+          echo "myoutput=$(echo myvalue)" >> $GITHUB_OUTPUT
       - name: Print jobfailed tag to STDOUT
         run: echo The jobfailed value is ${{ inputs.jobfailed}} from the ReusableWorkflow
