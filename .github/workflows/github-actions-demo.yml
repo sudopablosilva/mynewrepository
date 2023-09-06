@@ -21,6 +21,14 @@ jobs:
     steps:
       - run: env
 
+  intermediario:
+    runs-on: ubuntu-latest
+    outputs:
+      MY_JOB_OUTPUT: ${{ steps.step1.outputs.MYVARIABLE }}
+    steps:
+      - id: step1
+        run: echo "MYVARIABLE=$MY_WORKFLOW_VARIABLE" >> "$GITHUB_OUTPUT"
+        
   job0:
     runs-on: ubuntu-latest
     steps:
@@ -33,10 +41,12 @@ jobs:
       - id: step3
         run: echo "${{ env.MY_WORKFLOW_VARIABLE }}"
 
-  # job01:
-  #   uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
-  #   with:
-  #     subsys: ${{ env.MY_WORKFLOW_VARIABLE }}
+  job01:
+    needs:
+      - intermediario
+    uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
+    with:
+      subsys: ${{ needs.intermediario.outputs.MY_JOB_OUTPUT }}
       
   job1:
     runs-on: ubuntu-latest
