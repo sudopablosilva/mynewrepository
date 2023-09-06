@@ -34,7 +34,7 @@ jobs:
   reusablejob:
     uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
     with:
-      subsys: $MYVAR1
+      subsys: ${{ env.MYVAR1 }}
 
   anotherjob:
     runs-on: ubuntu-latest
