@@ -12,7 +12,7 @@ on:
         value: ${{ jobs.job1.outputs.myoutput }}
 
 env:
-  MYENV: myvalue
+  MYENV: "arn:aws:iam::123456789012:user/Development/product_1234/*"
 
 jobs:
 
