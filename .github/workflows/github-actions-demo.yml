@@ -16,15 +16,18 @@ on:
 
 jobs:
   job1:
+    outputs:
+      MYOUTPUT: ${{ steps.step1.outputs.MYVAR2 }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "MYVAR2=myvalue" >> $GITHUB_ENV
+      - name: step1
+        run: echo "MYVAR2=myvalue" >> $GITHUB_OUTPUT
   job2:
     runs-on: ubuntu-latest
     needs:
       - job1
     steps:
-      - run: echo "$MYVAR2"
+      - run: echo "${{ needs.job1.outputs.MYOUTPUT }}"
 #   print-tag:
 #     runs-on: ubuntu-latest
 #     if:  ${{ inputs.print_tags }} 
