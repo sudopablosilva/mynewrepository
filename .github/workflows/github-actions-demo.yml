@@ -81,6 +81,11 @@ jobs:
     with:
       subsys: ${{ inputs.subsys }}
 
+  reusablejob2:
+    uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
+    with:
+      subsys: "$MYVAR1"
+
   anotherjob:
     runs-on: ubuntu-latest
     needs: reusablejob
