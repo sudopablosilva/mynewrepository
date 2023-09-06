@@ -16,11 +16,22 @@ env:
   MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
 
 jobs:
+  showWorkflowEnvVariables:
+    runs-on: ubuntu-latest
+    steps:
+      - run: env
+
   job0:
     runs-on: ubuntu-latest
     steps:
       - id: step1
         run: echo "$MYVAR1"
+
+      - id: step2
+        run: echo "${{ vars.MYVAR1 }}"
+
+      - id: step3
+        run: echo "${{ env.MYVAR1 }}"
 
   job1:
     runs-on: ubuntu-latest
