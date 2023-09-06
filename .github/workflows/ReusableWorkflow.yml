@@ -11,18 +11,7 @@ on:
         description: "This is my workflow output"
         value: ${{ jobs.job1.outputs.myoutput }}
 
-env:
-  MYENV: "arn:aws:iam::123456789012:user/Development/product_1234/*"
-
 jobs:
-
-  job0:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print variable
-        id: step1
-        run: |
-          echo The MYENV value is $MYENV
           
   job1:
     outputs:
