@@ -9,11 +9,15 @@ on:
       subsys:
         type: string
         default: inputValue
+      sigla:
+        type: string
+        default: SC4
   repository_dispatch:
     types: [on-demand-test]
 
 env:
   MY_WORKFLOW_VARIABLE: "My workflow var value"
+  SIGLA: ""
 
 jobs:
   showWorkflowEnvVariables:
@@ -25,9 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       MY_JOB_OUTPUT: ${{ steps.step1.outputs.MYVARIABLE }}
+      SIGLA: ${{ steps.step1.outputs.SIGLA }}
     steps:
       - id: step1
-        run: echo "MYVARIABLE=$MY_WORKFLOW_VARIABLE" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "MYVARIABLE=$MY_WORKFLOW_VARIABLE" >> "$GITHUB_OUTPUT"
+          echo "SIGLA=`echo ${{ inputs.sigla }} | tr '[:upper:]' '[:lower:]'`" >> "$GITHUB_OUTPUT"
         
   job0:
     runs-on: ubuntu-latest
@@ -46,7 +53,7 @@ jobs:
       - intermediario
     uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
     with:
-      subsys: ${{ needs.intermediario.outputs.MY_JOB_OUTPUT }}
+      subsys: ${{ needs.intermediario.outputs.SIGLA }}
       
   job1:
     runs-on: ubuntu-latest
