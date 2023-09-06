@@ -14,6 +14,16 @@ env:
   MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
 
 jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "MYVAR2=myvalue" >> $GITHUB_ENV
+  job2:
+    runs-on: ubuntu-latest
+    needs:
+      - job1
+    steps:
+      - run: echo "$MYVAR2"
 #   print-tag:
 #     runs-on: ubuntu-latest
 #     if:  ${{ inputs.print_tags }} 
