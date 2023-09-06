@@ -27,10 +27,10 @@ jobs:
     needs:
       - job1
     steps:
-      - run: echo "${{ needs.job1.outputs.MYOUTPUT }}"
+      - run: echo "$OUTPUTFROMJOB1"
         env:
           OUTPUTFROMJOB1: ${{ needs.job1.outputs.MYOUTPUT }}
-      - run: echo "$OUTPUTFROMJOB1"
+      # - run: echo "$OUTPUTFROMJOB1"
 #   print-tag:
 #     runs-on: ubuntu-latest
 #     if:  ${{ inputs.print_tags }} 
