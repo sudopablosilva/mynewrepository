@@ -9,7 +9,10 @@ on:
         type: string
   repository_dispatch:
     types: [on-demand-test]
-    
+
+env:
+  MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
+
 jobs:
 #   print-tag:
 #     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
   reusablejob:
     uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
     with:
-      subsys: ${{ inputs.subsys }}
+      subsys: $MYVAR1
 
   anotherjob:
     runs-on: ubuntu-latest
