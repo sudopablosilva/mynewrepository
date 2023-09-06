@@ -7,11 +7,12 @@ on:
     inputs:
       subsys:
         type: string
+        default: inputValue
   repository_dispatch:
     types: [on-demand-test]
 
-env:
-  MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
+# env:
+#   MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
 
 jobs:
   job1:
@@ -44,7 +45,7 @@ jobs:
   reusablejob:
     uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
     with:
-      subsys: ${{ env.MYVAR1 }}
+      subsys: ${{ inputs.subsys }}
 
   anotherjob:
     runs-on: ubuntu-latest
