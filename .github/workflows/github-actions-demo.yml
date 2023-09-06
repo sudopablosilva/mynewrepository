@@ -2,6 +2,7 @@ name: GitHubActionsDemo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 
 on:
+  push:
 # https://docs.github.com/en/free-pro-team@latest/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
   workflow_dispatch:
     inputs:
