@@ -33,10 +33,10 @@ jobs:
       - id: step3
         run: echo "${{ env.MY_WORKFLOW_VARIABLE }}"
 
-  job01:
-    uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
-    with:
-      subsys: ${{ env.MY_WORKFLOW_VARIABLE }}
+  # job01:
+  #   uses: sudopablosilva/mynewrepository/.github/workflows/ReusableWorkflow.yml@main
+  #   with:
+  #     subsys: ${{ env.MY_WORKFLOW_VARIABLE }}
       
   job1:
     runs-on: ubuntu-latest
