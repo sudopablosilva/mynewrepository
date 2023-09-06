@@ -11,10 +11,15 @@ on:
   repository_dispatch:
     types: [on-demand-test]
 
-# env:
-#   MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
+env:
+  MYVAR1: "arn:aws:iam::123456789012:user/Development/product_1234/*"
 
 jobs:
+  job0:
+    runs-on: ubuntu-latest
+    steps:
+      - id: step1
+        run: echo "$MYVAR1"
 
   job1:
     runs-on: ubuntu-latest
