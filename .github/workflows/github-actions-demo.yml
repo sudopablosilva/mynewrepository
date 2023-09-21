@@ -80,8 +80,9 @@ jobs:
           echo Step finalizado
 
       - id: step5
+        timeout-minutes: 2
         run: |
-          bash meuprograma.sh
+          tail -f ./logs.txt
 
   job01:
     needs:
