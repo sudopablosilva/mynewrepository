@@ -52,7 +52,9 @@ jobs:
     timeout-minutes: 2
     steps:
       - id: lelogs
-        run: tail -f logs.txt | sed '/^20$/q'
+        run: |
+          sleep 3
+          tail -f logs.txt | sed '/^20$/q'
         
   job0:
     runs-on: ubuntu-latest
