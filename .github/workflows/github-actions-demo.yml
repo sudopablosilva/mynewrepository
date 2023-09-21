@@ -82,7 +82,7 @@ jobs:
       - id: step5
         timeout-minutes: 2
         run: |
-          tail -f ./logs.txt | sed '/^30$/q'
+          tail -f ./logs.txt
 
   job01:
     needs:
