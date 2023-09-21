@@ -52,6 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: step4
         run: |
+          ls
           timeout 120s bash meuprograma.sh | sed '/^20$/q'
 
       - id: step5
