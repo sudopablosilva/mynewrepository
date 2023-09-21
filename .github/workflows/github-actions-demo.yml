@@ -54,7 +54,8 @@ jobs:
       - id: step4
         run: |
           ls
-          bash meuprograma.sh &
+          timeout 60s ./meuprograma.sh &
+          echo Step finalizado
 
       - id: step5
         run: |
