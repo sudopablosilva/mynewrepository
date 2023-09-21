@@ -82,7 +82,7 @@ jobs:
       - id: step5
         timeout-minutes: 2
         run: |
-          /bin/bash -c "tail -f ./logs.txt | sed '/^30$/q'"
+          tail -f logs.txt | awk 'BEGIN { rc=1 } $1=="30" { print $1; rc=0; exit } { print $1 } END { exit rc }'
 
   job01:
     needs:
