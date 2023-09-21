@@ -36,9 +36,24 @@ jobs:
           echo "MYVARIABLE=$MY_WORKFLOW_VARIABLE" >> "$GITHUB_OUTPUT"
           echo "SIGLA=`echo ${{ inputs.sigla }} | tr '[:upper:]' '[:lower:]'`" >> "$GITHUB_OUTPUT"
           echo $SIGLA
+
+  jobiniciaprograma:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - id: rodaprograma
+        run: bash meuprograma.sh
+
+  joblelogs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - id: lelogs
+        run: tail -f logs.txt | sed '/^20$/q'
         
   job0:
     runs-on: ubuntu-latest
+    needs: [joblelogs]
     timeout-minutes: 2
     steps:
       - id: step1
@@ -50,16 +65,16 @@ jobs:
       - id: step3
         run: echo "${{ env.MY_WORKFLOW_VARIABLE }}"
 
-      - uses: actions/checkout@v4
-      - id: step4
-        run: |
-          ls
-          timeout 60s bash meuprograma.sh &
-          echo Step finalizado
+      # - uses: actions/checkout@v4
+      # - id: step4
+      #   run: |
+      #     ls
+      #     timeout 60s bash meuprograma.sh &
+      #     echo Step finalizado
 
-      - id: step5
-        run: |
-          bash meuprograma.sh
+      # - id: step5
+      #   run: |
+      #     bash meuprograma.sh
 
   job01:
     needs:
