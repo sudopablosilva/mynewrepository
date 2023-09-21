@@ -53,7 +53,7 @@ jobs:
       - id: step4
         run: |
           ls
-          timeout 120s bash meuprograma.sh | sed '/^20$/q'
+          timeout 120s bash meuprograma.sh | sed '/^20$/q' &
 
       - id: step5
         run: |
