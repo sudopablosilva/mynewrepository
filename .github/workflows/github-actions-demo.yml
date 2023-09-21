@@ -84,7 +84,7 @@ jobs:
         run: |
           while read line
           do 
-            echo $line; 
+            echo $line
             if [ $line =~ .*"30".* ]; then
               break
             end
