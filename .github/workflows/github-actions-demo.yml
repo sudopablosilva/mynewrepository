@@ -39,6 +39,7 @@ jobs:
         
   job0:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - id: step1
         run: echo "$MY_WORKFLOW_VARIABLE"
@@ -53,7 +54,7 @@ jobs:
       - id: step4
         run: |
           ls
-          timeout 120s bash meuprograma.sh | sed '/^20$/q' &
+          bash meuprograma.sh | sed '/^20$/q' &
 
       - id: step5
         run: |
