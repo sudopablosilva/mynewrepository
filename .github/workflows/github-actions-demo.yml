@@ -54,7 +54,7 @@ jobs:
       - id: step4
         run: |
           ls
-          bash meuprograma.sh | sed '/^20$/q' &
+          bash meuprograma.sh &
 
       - id: step5
         run: |
