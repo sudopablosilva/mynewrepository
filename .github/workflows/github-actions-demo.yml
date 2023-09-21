@@ -49,6 +49,15 @@ jobs:
       - id: step3
         run: echo "${{ env.MY_WORKFLOW_VARIABLE }}"
 
+      - uses: actions/checkout@v4
+      - id: step4
+        run: |
+          timeout 120s bash meuprograma.sh | sed '/^20$/q'
+
+      - id: step5
+        run: |
+          bash meuprograma.sh
+
   job01:
     needs:
       - intermediario
