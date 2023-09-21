@@ -82,7 +82,18 @@ jobs:
       - id: step5
         timeout-minutes: 2
         run: |
-          tail -f ./logs.txt
+          while read line
+          do 
+            echo $line; 
+            if [ $line =~ .*"30".* ]; then
+              break
+            end
+          done < tail -f ./logs.txt
+          
+      # - id: step5
+      #   timeout-minutes: 2
+      #   run: |
+      #     tail -f ./logs.txt | sed '/^30$/q'
 
   job01:
     needs:
