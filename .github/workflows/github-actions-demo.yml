@@ -42,7 +42,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - id: rodaprograma
-        run: bash meuprograma.sh
+        run: bash meuprograma.sh > logs.txt
 
   joblelogs:
     runs-on: ubuntu-latest
