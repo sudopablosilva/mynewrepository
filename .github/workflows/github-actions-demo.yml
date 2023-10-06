@@ -41,6 +41,8 @@ jobs:
       #     - setskipcompilation
 
       - run: |
+          echo "The value of SKIP_COMPILATION is $SKIP_COMPILATION"
+
           if [ $SKIP_COMPILATION ]; then
             exit 1
           fi
