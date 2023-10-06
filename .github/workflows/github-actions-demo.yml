@@ -20,6 +20,14 @@ env:
   SIGLA: ""
 
 jobs:
+
+  compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "SKIP_COMPILATION=True" >> $GITHUB_ENV
+      - if: ${{ !SKIP_COMPILATION }}
+        run: echo "Running compilation"
+      
   showWorkflowEnvVariables:
     runs-on: ubuntu-latest
     steps:
