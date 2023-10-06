@@ -24,14 +24,14 @@ jobs:
   compilation:
     runs-on: ubuntu-latest
     env:
-      SKIP_COMPILATION: true
+      SKIP_COMPILATION: false
 
     steps:
       - name: showskipcompilation
         run: echo $SKIP_COMPILATION
 
       - name: setskipcompilation
-        run: echo "SKIP_COMPILATION=true" >> $GITHUB_OUTPUT
+        run: echo "SKIP_COMPILATION=false" >> $GITHUB_OUTPUT
 
       - name: showskipcompilation
         run: echo $SKIP_COMPILATION
