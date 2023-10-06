@@ -41,7 +41,7 @@ jobs:
       #     - setskipcompilation
 
       - run: |
-          if [ $SKIP_COMPILATION ] then
+          if [ $SKIP_COMPILATION ]; then
             exit 1
           fi
           echo "Running compilation"
