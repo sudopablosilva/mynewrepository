@@ -23,9 +23,12 @@ jobs:
 
   compilation:
     runs-on: ubuntu-latest
+    env:
+      SKIP_COMPILATION: False
+
     steps:
       - name: checkcompilation
-        run: echo "SKIP_COMPILATION=False" >> $GITHUB_ENV
+        run: echo "SKIP_COMPILATION=True" >> $GITHUB_ENV
       - if: ${{ !env.SKIP_COMPILATION }}
         run: echo "Running compilation"
       
