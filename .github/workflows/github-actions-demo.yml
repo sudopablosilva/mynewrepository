@@ -24,20 +24,27 @@ jobs:
   compilation:
     runs-on: ubuntu-latest
     env:
-      SKIP_COMPILATION: False
+      SKIP_COMPILATION: false
 
     steps:
       - name: showskipcompilation
         run: echo $SKIP_COMPILATION
 
       - name: setskipcompilation
-        run: echo "SKIP_COMPILATION=True" >> $GITHUB_OUTPUT
+        run: echo "SKIP_COMPILATION=true" >> $GITHUB_OUTPUT
 
       - name: showskipcompilation
         run: echo $SKIP_COMPILATION
       
-      - if: ${{ steps.setskipcompilation.outputs.SKIP_COMPILATION }}
-        run: echo "Running compilation"
+      # - if: ${{ steps.setskipcompilation.outputs.SKIP_COMPILATION }}
+      #   needs:
+      #     - setskipcompilation
+
+      - run: |
+          if [ $SKIP_COMPILATION ] then
+            exit 1
+          fi
+          echo "Running compilation"
       
   showWorkflowEnvVariables:
     runs-on: ubuntu-latest
