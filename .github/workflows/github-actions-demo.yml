@@ -31,7 +31,7 @@ jobs:
         run: echo $SKIP_COMPILATION
 
       - name: setskipcompilation
-        run: echo "SKIP_COMPILATION=false" >> $GITHUB_OUTPUT
+        run: echo "SKIP_COMPILATION=false" >> $GITHUB_ENV
 
       - name: showskipcompilation
         run: echo $SKIP_COMPILATION
