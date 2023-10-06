@@ -24,7 +24,7 @@ jobs:
   compilation:
     runs-on: ubuntu-latest
     env:
-      SKIP_COMPILATION: false
+      SKIP_COMPILATION: true
 
     steps:
       - name: showskipcompilation
@@ -43,7 +43,9 @@ jobs:
       - run: |
           echo "The value of SKIP_COMPILATION is $SKIP_COMPILATION"
 
-          if [ $SKIP_COMPILATION ]; then
+          if $SKIP_COMPILATION
+          then
+            echo "Skipping compilation"
             exit 1
           fi
           echo "Running compilation"
