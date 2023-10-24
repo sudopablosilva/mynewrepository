@@ -30,14 +30,19 @@ jobs:
   a:
     name: a
     runs-on: ubuntu-latest
+    continue-on-error: true
+    outputs:
+      myoutput: ${{ steps.step1.outputs.SIGLA }}
     steps:
       - run: echo "A"
+      - id: step1
+        run: echo "SIGLA=minhasigla" >> $GITHUB_OUTPUT
       - id: set
         run: |
           exit 1
 
   runsuccess:
-    if: ${{ always() && needs.a.result == 'success' }}
+    if: success() && needs.a.outputs.myoutput == 'minhasigla'
     name: runsuccess
     outputs:
       run_job_b: ${{ steps.set_success.outputs.run_job_b }}
@@ -52,7 +57,7 @@ jobs:
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
 
   runfailure:
-    if: ${{ always() && needs.a.result == 'failure' }}
+    if: !success()
     name: runfailure
     outputs:
       run_job_b: ${{ steps.set_failure.outputs.run_job_b }}
