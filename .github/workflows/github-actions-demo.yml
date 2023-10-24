@@ -35,7 +35,7 @@ jobs:
       - run: echo "A"
       - id: set
         run: |
-          exit 0
+          exit 1
   should_run_success_or_failure:
     name: should_run_success_or_failure
     outputs:
