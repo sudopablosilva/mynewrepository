@@ -30,6 +30,7 @@ jobs:
   a:
     name: a
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - run: echo "A"
       - id: set
