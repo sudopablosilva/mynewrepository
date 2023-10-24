@@ -35,8 +35,7 @@ jobs:
       - run: echo "A"
       - id: set
         run: |
-          exit 1
-
+          exit 0
   should_run_success_or_failure:
     name: should_run_success_or_failure
     outputs:
@@ -46,7 +45,6 @@ jobs:
     needs:
       - a
     steps:
-      - run: echo "B"
       - id: set_success
         if: always() && needs.a.result == 'success'
         run: |
