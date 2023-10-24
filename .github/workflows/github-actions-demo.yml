@@ -37,7 +37,7 @@ jobs:
           exit 1
 
   runsuccess:
-    if: ${{ needs.a.result == 'success' }}
+    if: ${{ always() && needs.a.result == 'success' }}
     name: runsuccess
     outputs:
       run_job_b: ${{ steps.set_success.outputs.run_job_b }}
@@ -52,7 +52,7 @@ jobs:
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
 
   runfailure:
-    if: ${{ needs.a.result == 'failure' }}
+    if: ${{ always() && needs.a.result == 'failure' }}
     name: runfailure
     outputs:
       run_job_b: ${{ steps.set_failure.outputs.run_job_b }}
