@@ -46,6 +46,8 @@ jobs:
     needs:
       - a
     steps:
+      - run: echo ${{ needs.a }}
+      
       - id: set_success
         if: ${{ needs.a.result == 'success' }}
         run: |
