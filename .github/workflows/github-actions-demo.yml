@@ -46,7 +46,7 @@ jobs:
     needs:
       - a
     steps:
-      - run: echo ${{ needs.a }}
+      - run: echo ${{ toJson(needs.a) }}
       
       - id: set_success
         if: ${{ needs.a.result == 'success' }}
