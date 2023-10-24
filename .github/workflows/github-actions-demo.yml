@@ -36,7 +36,7 @@ jobs:
       - id: set
         run: |
           exit 1
-          
+
   should_run_success_or_failure:
     name: should_run_success_or_failure
     outputs:
@@ -47,18 +47,18 @@ jobs:
       - a
     steps:
       - id: set_success
-        if: always() && needs.a.result == 'success'
+        if: ${{ needs.a.result == 'success' }}
         run: |
           JOB_FILE=`echo "${{ inputs.jobsuccess }}" | base64`
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
       - id: set_failure
-        if: always() && needs.a.result != 'success'
+        if: ${{ needs.a.result != 'success' }}
         run: |
           JOB_FILE=`echo "${{ inputs.jobfailed }}" | base64`
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
 
   jobsuccess:
-    name: b
+    name: jobsuccess
     if: ${{ success() }}
     runs-on: ubuntu-latest
     needs:
@@ -70,7 +70,7 @@ jobs:
       JOB_FILE: ${{ needs.should_run_success_or_failure.outputs.run_job_b }}
 
   jobfailure:
-    name: b
+    name: jobfailure
     if: ${{ !success() }}
     runs-on: ubuntu-latest
     needs:
