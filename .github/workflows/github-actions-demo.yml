@@ -36,6 +36,7 @@ jobs:
       - id: set
         run: |
           exit 1
+          
   should_run_success_or_failure:
     name: should_run_success_or_failure
     outputs:
@@ -56,8 +57,9 @@ jobs:
           JOB_FILE=`echo "${{ inputs.jobfailed }}" | base64`
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
 
-  b:
+  jobsuccess:
     name: b
+    if: ${{ success() }}
     runs-on: ubuntu-latest
     needs:
       - should_run_success_or_failure
@@ -67,6 +69,18 @@ jobs:
     env:
       JOB_FILE: ${{ needs.should_run_success_or_failure.outputs.run_job_b }}
 
+  jobfailure:
+    name: b
+    if: ${{ !success() }}
+    runs-on: ubuntu-latest
+    needs:
+      - should_run_success_or_failure
+    steps:
+      - id: jobfile
+        run: echo "$JOB_FILE"
+    env:
+      JOB_FILE: ${{ needs.should_run_success_or_failure.outputs.run_job_b }}
+    
 
 #   compilation:
 #     runs-on: ubuntu-latest
