@@ -37,7 +37,7 @@ jobs:
       - run: echo "A"
       - id: set
         run: |
-          exit 1
+          exit 0
       - id: step1
         run: echo "SIGLA=minhasigla" >> $GITHUB_OUTPUT
 
