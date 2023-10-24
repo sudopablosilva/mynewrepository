@@ -37,8 +37,9 @@ jobs:
         run: |
           exit 1
 
-  should_run_success_or_failure:
-    name: should_run_success_or_failure
+  runsuccess:
+    if: ${{ needs.a.result == 'success' }}
+    name: runsuccess
     outputs:
       run_job_b: ${{ steps.set_success.outputs.run_job_b }}
     
@@ -46,42 +47,50 @@ jobs:
     needs:
       - a
     steps:
-      - run: echo ${{ toJson(needs.a) }}
-      
       - id: set_success
-        if: ${{ needs.a.result == 'success' }}
         run: |
           JOB_FILE=`echo "${{ inputs.jobsuccess }}" | base64`
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
+
+  runfailure:
+    if: ${{ needs.a.result == 'success' }}
+    name: runfailure
+    outputs:
+      run_job_b: ${{ steps.set_failure.outputs.run_job_b }}
+    
+    runs-on: ubuntu-latest
+    needs:
+      - a
+    steps:
       - id: set_failure
-        if: ${{ needs.a.result != 'success' }}
         run: |
           JOB_FILE=`echo "${{ inputs.jobfailed }}" | base64`
           echo "run_job_b=$JOB_FILE" >> $GITHUB_OUTPUT
 
+          
   jobsuccess:
     name: jobsuccess
-    if: ${{ success() }}
+    # if: ${{ success() }}
     runs-on: ubuntu-latest
     needs:
-      - should_run_success_or_failure
+      - runsuccess
     steps:
       - id: jobfile
         run: echo "$JOB_FILE"
     env:
-      JOB_FILE: ${{ needs.should_run_success_or_failure.outputs.run_job_b }}
+      JOB_FILE: ${{ needs.runsuccess.outputs.run_job_b }}
 
   jobfailure:
     name: jobfailure
-    if: ${{ !success() }}
+    # if: ${{ !success() }}
     runs-on: ubuntu-latest
     needs:
-      - should_run_success_or_failure
+      - runfailure
     steps:
       - id: jobfile
         run: echo "$JOB_FILE"
     env:
-      JOB_FILE: ${{ needs.should_run_success_or_failure.outputs.run_job_b }}
+      JOB_FILE: ${{ needs.runfailure.outputs.run_job_b }}
     
 
 #   compilation:
