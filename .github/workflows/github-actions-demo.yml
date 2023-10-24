@@ -35,11 +35,11 @@ jobs:
       myoutput: ${{ steps.step1.outputs.SIGLA }}
     steps:
       - run: echo "A"
-      - id: step1
-        run: echo "SIGLA=minhasigla" >> $GITHUB_OUTPUT
       - id: set
         run: |
           exit 1
+      - id: step1
+        run: echo "SIGLA=minhasigla" >> $GITHUB_OUTPUT
 
   runsuccess:
     if: success() && needs.a.outputs.myoutput == 'minhasigla'
