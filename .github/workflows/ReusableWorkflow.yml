@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "Printing inputs"
           
-          echo ${{ toJson(inputs) }}
+          echo '${{ toJson(inputs) }}'
           
           echo "Printing environment variables"
           env | sort
