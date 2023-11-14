@@ -10,8 +10,24 @@ on:
       myworkflowoutput:
         description: "This is my workflow output"
         value: ${{ jobs.job1.outputs.myoutput }}
-
+  workflow_dispatch:
+    inputs:
+      subsys:
+        type: string
+        
 jobs:
+
+  job0:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print inputs and environment variables
+        run: |
+          echo "Printing inputs"
+          
+          echo ${{ inputs }}
+          
+          echo "Printing environment variables"
+          env
           
   job1:
     outputs:
