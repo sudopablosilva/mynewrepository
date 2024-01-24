@@ -45,17 +45,29 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-2
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      # - name: Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
     
-      - uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.MYKUBECONFIG }}
-      - name: List pods
+      - name: Set up Kubernetes context
+        env:
+          KUBECONFIG_CONTENTS: ${{ secrets.MYKUBECONFIG }}
         run: |
+          echo "$KUBECONFIG_CONTENTS" > $HOME/.kube/config
+          kubectl config set-context --current --namespace=default
           kubectl get pods
+
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl apply -f deployment.yaml
+          
+      # - uses: azure/k8s-set-context@v3
+      #   with:
+      #     method: kubeconfig
+      #     kubeconfig: ${{ secrets.MYKUBECONFIG }}
+      # - name: List pods
+      #   run: |
+      #     kubectl get pods
     # - uses: Azure/k8s-deploy@v4
       #   with:
       #     resource-group: yourResourceGroup
