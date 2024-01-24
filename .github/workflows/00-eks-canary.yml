@@ -67,14 +67,20 @@ jobs:
           kubeconfig: '${{ secrets.MYKUBECONFIG }}'
         id: login
 
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.MYKUBECONFIG }}
+        with:
+          args: get pods
+
       # - uses: azure/k8s-set-context@v3
       #   with:
       #     method: kubeconfig
       #     kubeconfig: ${{ secrets.MYKUBECONFIG }}
 
-      - name: List pods
-        run: |
-          kubectl get pods
+      # - name: List pods
+      #   run: |
+      #     kubectl get pods
 
     # - uses: Azure/k8s-deploy@v4
       #   with:
