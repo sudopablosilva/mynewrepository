@@ -53,6 +53,7 @@ jobs:
         env:
           KUBECONFIG_CONTENTS: ${{ secrets.MYKUBECONFIG }}
         run: |
+          mkdir -p $HOME/.kube
           echo "$KUBECONFIG_CONTENTS" > $HOME/.kube/config
           kubectl config set-context --current --namespace=default
           kubectl get pods
