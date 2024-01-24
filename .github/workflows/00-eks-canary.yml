@@ -49,23 +49,27 @@ jobs:
       #   id: login-ecr
       #   uses: aws-actions/amazon-ecr-login@v1
     
-      - name: Set up Kubernetes context
-        env:
-          KUBECONFIG_CONTENTS: ${{ secrets.MYKUBECONFIG }}
-        run: |
-          mkdir -p $HOME/.kube
-          echo "$KUBECONFIG_CONTENTS" > $HOME/.kube/config
-          kubectl config set-context --current --namespace=default
-          kubectl get pods
+      # - name: Set up Kubernetes context
+      #   env:
+      #     KUBECONFIG_CONTENTS: ${{ secrets.MYKUBECONFIG }}
+      #   run: |
+      #     mkdir -p $HOME/.kube
+      #     echo "$KUBECONFIG_CONTENTS" > $HOME/.kube/config
+      #     kubectl config set-context --current --namespace=default
+      #     kubectl get pods
 
       # - name: Deploy to Kubernetes
       #   run: |
       #     kubectl apply -f deployment.yaml
           
-      - uses: azure/k8s-actions/k8s-set-context@master
-        with:
-          kubeconfig: '${{ secrets.MYKUBECONFIG }}'
-        id: login
+      # - uses: azure/k8s-actions/k8s-set-context@master
+      #   with:
+      #     kubeconfig: '${{ secrets.MYKUBECONFIG }}'
+      #   id: login
+
+      # - uses: actions-hub/kubectl@master
+      #   env:
+      #     KUBE_CONFIG: ${{ secrets.MYKUBECONFIG }}
 
       - uses: actions-hub/kubectl@master
         env:
