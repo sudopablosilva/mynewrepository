@@ -1,0 +1,60 @@
+name: EKS-Canary
+
+on:
+  push:
+# https://docs.github.com/en/free-pro-team@latest/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
+  workflow_dispatch:
+    # inputs:
+    #   subsys:
+    #     type: string
+    #     default: inputValue
+    #   sigla:
+    #     type: string
+    #     default: SC4
+    #   jobsuccess:
+    #     type: string
+    #     default: sucesso
+    #   jobfailed:
+    #     type: string
+    #     default: falha
+#   repository_dispatch:
+#     types: [on-demand-test]
+
+env:
+  MY_WORKFLOW_VARIABLE: "My workflow var value"
+  SIGLA: ""
+
+jobs:
+  deploy-eks:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - uses: azure/setup-kubectl@v3
+        # with:
+        #   version: '<version>' # default is latest stable
+        id: install
+        
+      - uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.MYKUBECONFIG }}
+          context: pcsilva-Isengard@cluster-with-karpenter.us-east-2.eksctl.io
+
+      - name: List pods
+        run: |
+          kubectl get pods
+    # - uses: Azure/k8s-deploy@v4
+      #   with:
+      #     resource-group: yourResourceGroup
+      #     name: yourClusterName
+      #     action: deploy
+      #     strategy: basic
+      
+      #     private-cluster: true
+      #     manifests: |
+      #       https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
+      #     images: |
+      #       nginx:1.14.3
