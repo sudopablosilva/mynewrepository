@@ -62,13 +62,20 @@ jobs:
       #   run: |
       #     kubectl apply -f deployment.yaml
           
+      - uses: azure/k8s-actions/k8s-set-context@master
+        with:
+          kubeconfig: '${{ secrets.MYKUBECONFIG }}'
+        id: login
+
       # - uses: azure/k8s-set-context@v3
       #   with:
       #     method: kubeconfig
       #     kubeconfig: ${{ secrets.MYKUBECONFIG }}
-      # - name: List pods
-      #   run: |
-      #     kubectl get pods
+
+      - name: List pods
+        run: |
+          kubectl get pods
+
     # - uses: Azure/k8s-deploy@v4
       #   with:
       #     resource-group: yourResourceGroup
