@@ -52,6 +52,19 @@ jobs:
         run: |
           kubectl get pods
 
+      - uses: Azure/k8s-deploy@v4
+        with:
+          # resource-group: yourResourceGroup
+          # name: mynginxfromgithub
+          action: deploy
+          strategy: basic
+      
+          private-cluster: true
+          manifests: |
+            https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
+          images: |
+            nginx:1.14.3
+
       # - name: Login to Amazon ECR
       #   id: login-ecr
       #   uses: aws-actions/amazon-ecr-login@v1
@@ -97,15 +110,3 @@ jobs:
 
       
 
-    # - uses: Azure/k8s-deploy@v4
-      #   with:
-      #     resource-group: yourResourceGroup
-      #     name: yourClusterName
-      #     action: deploy
-      #     strategy: basic
-      
-      #     private-cluster: true
-      #     manifests: |
-      #       https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
-      #     images: |
-      #       nginx:1.14.3
