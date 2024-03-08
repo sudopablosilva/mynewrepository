@@ -1,0 +1,118 @@
+name: EKS-Canary
+
+on:
+  push:
+# https://docs.github.com/en/free-pro-team@latest/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
+  workflow_dispatch:
+    # inputs:
+    #   subsys:
+    #     type: string
+    #     default: inputValue
+    #   sigla:
+    #     type: string
+    #     default: SC4
+    #   jobsuccess:
+    #     type: string
+    #     default: sucesso
+    #   jobfailed:
+    #     type: string
+    #     default: falha
+#   repository_dispatch:
+#     types: [on-demand-test]
+
+env:
+  MY_WORKFLOW_VARIABLE: "My workflow var value"
+  SIGLA: ""
+
+jobs:
+  deploy-eks:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    steps:
+      - uses: azure/setup-kubectl@v3
+        # with:
+        #   version: '<version>' # default is latest stable
+        id: install
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-2
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name cluster-with-karpenter-2 --region us-east-2
+
+      - name: List pods
+        run: |
+          kubectl get pods
+
+      - uses: azure/k8s-set-context@v3
+        with:
+            method: kubeconfig
+            kubeconfig: <your kubeconfig>
+            context: <context name> # current-context from kubeconfig is used as default
+
+      - uses: Azure/k8s-deploy@v4
+        with:
+          # resource-group: yourResourceGroup
+          # name: mynginxfromgithub
+          action: deploy
+          strategy: basic
+      
+          private-cluster: true
+          manifests: |
+            https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
+          images: |
+            nginx:1.14.3
+
+      # - name: Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
+    
+      # - name: Set up Kubernetes context
+      #   env:
+      #     KUBECONFIG_CONTENTS: ${{ secrets.MYKUBECONFIG }}
+      #   run: |
+      #     mkdir -p $HOME/.kube
+      #     echo "$KUBECONFIG_CONTENTS" > $HOME/.kube/config
+      #     kubectl config set-context --current --namespace=default
+      #     kubectl get pods
+
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl apply -f deployment.yaml
+          
+      # - uses: azure/k8s-actions/k8s-set-context@master
+      #   with:
+      #     kubeconfig: '${{ secrets.MYKUBECONFIG }}'
+      #   id: login
+
+      # - uses: actions-hub/kubectl@master
+      #   env:
+      #     KUBE_CONFIG: ${{ secrets.MYKUBECONFIG }}
+
+      # - name: Build and push CONTAINER_NAME
+      #   uses: ianbelcher/eks-kubectl-action@master
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+      #     aws-region: us-east-2
+      #     cluster_name: cluster-with-karpenter-2
+      #     eks_role_arn: ${{ secrets.EKS_ROLE_ARN }}
+      #     kubernetes_version: v1.21.0
+      #     args: set image --record deployment/pod-name pod-name=${{ steps.build.outputs.IMAGE_URL }}
+
+      # - uses: azure/k8s-set-context@v3
+      #   with:
+      #     method: kubeconfig
+      #     kubeconfig: ${{ secrets.MYKUBECONFIG }}
+
+      
+
