@@ -22,6 +22,8 @@ jobs:
 
       - name: Check for new releases
         run: python check_releases.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
   build:
     runs-on: ubuntu-latest

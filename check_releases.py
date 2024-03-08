@@ -1,15 +1,21 @@
 import requests
 import logging
+import os
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-dependency_file = "dependencies.rqr"
+dependency_file = "file.txt"
 
 def get_latest_release(user_repo):
     url = f"https://api.github.com/repos/{user_repo}/releases/latest"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",  # Using an environment variable for the token
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raises an exception for 4XX/5XX errors
         return response.json()["tag_name"]
     except requests.exceptions.HTTPError as http_err:
