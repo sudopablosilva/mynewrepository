@@ -52,6 +52,12 @@ jobs:
         run: |
           kubectl get pods
 
+      - uses: azure/k8s-set-context@v3
+        with:
+            method: kubeconfig
+            kubeconfig: <your kubeconfig>
+            context: <context name> # current-context from kubeconfig is used as default
+
       - uses: Azure/k8s-deploy@v4
         with:
           # resource-group: yourResourceGroup
