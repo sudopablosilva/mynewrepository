@@ -4,7 +4,7 @@ import logging
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-dependency_file = "file.txt"
+dependency_file = "dependencies.rqr"
 
 def get_latest_release(user_repo):
     url = f"https://api.github.com/repos/{user_repo}/releases/latest"
