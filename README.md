@@ -1,6 +1,5 @@
 # mynewrepository
 
 
-Updating the minor version for the first time
-
-Updating the minor version for the second time
+BREAKING CHANGE: The graphiteWidth option has been removed.
+The default graphite width of 10mm is always used for performance reasons.
