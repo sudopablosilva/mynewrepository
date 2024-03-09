@@ -1,6 +1,7 @@
 import requests
 import logging
 import os
+from packaging import version
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,22 +28,28 @@ def get_latest_release(user_repo):
     return None
 
 def main():
+    error_detected = False
     try:
         with open(dependency_file, "r") as file:
             for line in file:
-                repo, version = line.strip().split("==")
+                repo, declared_version = line.strip().split("==")
                 latest_version = get_latest_release(f"sudopablosilva/{repo}")
-                if latest_version and latest_version != version:
-                    logging.info(f"New release for {repo}: {latest_version}")
-                    # Here you can add your notification logic
+                if latest_version and version.parse(latest_version) > version.parse(declared_version):
+                    logging.error(f"Detected newer release for {repo}: {latest_version} than declared: {declared_version}")
+                    error_detected = True
                 elif latest_version:
-                    logging.info(f"No new release for {repo}. Current version: {version}")
+                    logging.info(f"No new release for {repo}. Current version: {declared_version}")
                 else:
                     logging.warning(f"Could not check releases for {repo}")
     except FileNotFoundError:
         logging.error(f"Dependency file '{dependency_file}' not found.")
+        error_detected = True
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
+        error_detected = True
+
+    if error_detected:
+        exit(1)
 
 if __name__ == "__main__":
     main()
