@@ -1,0 +1,88 @@
+name: Onebox Deployment Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # - name: Checkout code
+      #   uses: actions/checkout@v3
+
+      # - name: Simulate CI process
+      #   run: |
+      #     echo "Starting CI process..."
+      #     sleep 60
+      #     echo "CI process completed."
+
+      # - name: Create GMUD in ServiceNow
+      #   run: |
+      #     echo "Creating GMUD for deployment..."
+      #     sleep 10
+      #     echo "GMUD created."
+
+      # - name: Awaiting GMUD approval
+      #   run: |
+      #     echo "Awaiting GMUD approval..."
+      #     sleep 120
+      #     echo "GMUD approved by CAB and GMUD approvers."
+
+      - name: Check for High Severity Rollback Alarms
+        run: |
+          echo "Checking for High Severity Aggregate Rollback Alarm..."
+          sleep 10
+          echo "No high severity rollback alarms detected, proceeding."
+
+      - name: Deploy to OneBox Environment
+        run: |
+          echo "Deploying to OneBox environment..."
+          sleep 20
+          echo "Deployment started in OneBox."
+
+      - name: Direct Traffic and Monitor OneBox Metrics
+        run: |
+          echo "Directing 1% traffic to OneBox, 99% remains on Stable..."
+          sleep 5
+          echo "Monitoring OneBox deployment metrics..."
+          sleep 30
+          echo "OneBox metrics within expected range."
+
+      - name: Check for OneBox Rollback Alarms
+        run: |
+          echo "Checking for OneBox specific rollback alarms..."
+          sleep 10
+          echo "No OneBox rollback alarms, proceeding."
+
+      - name: Initiate Canary Deployment
+        run: |
+          echo "Initiating Canary Deployment using ArgoRollouts..."
+          sleep 20
+          echo "Canary deployment initiated, starting traffic adjustment..."
+
+      - name: Traffic Adjustment for Canary
+        run: |
+          echo "Adjusting traffic, increasing for v2, decreasing for v1..."
+          sleep 15
+          echo "Traffic adjusted as per rollout strategy."
+
+      - name: Finalize Deployment
+        run: |
+          echo "Finalizing deployment..."
+          sleep 10
+          echo "Deployment successful, stable version updated."
+
+      - name: Confirm Update on GitHub
+        run: |
+          echo "Confirming update completion on GitHub..."
+          sleep 5
+          echo "Update confirmed."
+
+      # - name: Close GMUD in ServiceNow
+      #   run: |
+      #     echo "Closing GMUD in ServiceNow post successful deployment..."
+      #     sleep 10
+      #     echo "GMUD closed."
+
