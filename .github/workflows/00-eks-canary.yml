@@ -82,24 +82,23 @@ jobs:
 
       - name: Deploy to Clusters
         env:
-          SERVICE_NAME: openfinance
-          PATH_TO_MANIFEST: myapp/applicationsets.yaml
+          serviceName: openfinance
+          templatePath: applicationsets.yaml
         run: |
           import yaml
           import subprocess
           import sys
 
-          def modify_and_print_yaml(cluster, cell_name, service_name, cluster_name, workload_type, template_path):
-              with open(template_path, 'r') as file:
+          def modify_and_print_yaml(clusterName, cellName, serviceName, workloadType, templatePath):
+              with open(templatePath, 'r') as file:
                   data = yaml.safe_load(file)
 
               data['metadata']['name'] = f'{clusterName}-{cellName}-{serviceName}-{workloadType}'
               element = data['spec']['generators'][0]['list']['elements'][0]
-              element['cluster'] = cluster
-              element['cellName'] = cell_name
-              element['serviceName'] = service_name
-              element['clusterName'] = cluster_name
-              element['workloadType'] = workload_type
+              element['clusterName'] = clusterName
+              element['cellName'] = cellName
+              element['serviceName'] = serviceName
+              element['workloadType'] = workloadType
 
               return yaml.safe_dump(data)
 
@@ -107,7 +106,7 @@ jobs:
           types = ["onebox", "normal"]
           for cluster in clusters:
             for type in types:
-              yaml_output = modify_and_print_yaml(cluster, cell_name, service_name, cluster_name, workload_type, template_path)
+              yaml_output = modify_and_print_yaml(clusterName, cellName, serviceName, workloadType, templatePath)
               with open('modified_manifest.yaml', 'w') as f:
                 f.write(yaml_output)
               subprocess.run(['kubectl', 'apply', '-f', 'modified_manifest.yaml'])
