@@ -46,30 +46,30 @@ jobs:
           aws-region: us-east-2
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name cluster-with-karpenter-2 --region us-east-2
+        run: aws eks update-kubeconfig --name cell-1 --region us-east-2
 
       - name: List pods
         run: |
           kubectl get pods
 
-      - uses: azure/k8s-set-context@v3
-        with:
-            method: kubeconfig
-            kubeconfig: <your kubeconfig>
-            context: <context name> # current-context from kubeconfig is used as default
-
-      - uses: Azure/k8s-deploy@v4
-        with:
-          # resource-group: yourResourceGroup
-          # name: mynginxfromgithub
-          action: deploy
-          strategy: basic
-      
-          private-cluster: true
-          manifests: |
-            https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
-          images: |
-            nginx:1.14.3
+    # - uses: azure/k8s-set-context@v3
+    #         with:
+    #             method: kubeconfig
+    #             kubeconfig: <your kubeconfig>
+    #             context: <context name> # current-context from kubeconfig is used as default
+    
+    #       - uses: Azure/k8s-deploy@v4
+    #         with:
+    #           # resource-group: yourResourceGroup
+    #           # name: mynginxfromgithub
+    #           action: deploy
+    #           strategy: basic
+          
+    #           private-cluster: true
+    #           manifests: |
+    #             https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/controllers/nginx-deployment.yaml
+    #           images: |
+    #             nginx:1.14.3
 
       # - name: Login to Amazon ECR
       #   id: login-ecr
