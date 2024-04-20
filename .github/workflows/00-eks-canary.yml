@@ -107,7 +107,7 @@ jobs:
           types = ["onebox", "normal"]
           for cluster in clusters:
             for type in types:
-              yaml_output = modify_and_print_yaml(cluster, cluster, SERVICE_NAME, cluster, type, PATH_TO_MANIFEST)
+              yaml_output = modify_and_print_yaml(cluster, cell_name, service_name, cluster_name, workload_type, template_path)
               with open('modified_manifest.yaml', 'w') as f:
                 f.write(yaml_output)
               subprocess.run(['kubectl', 'apply', '-f', 'modified_manifest.yaml'])
