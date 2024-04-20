@@ -38,7 +38,7 @@ jobs:
         id: install
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -51,6 +51,27 @@ jobs:
       - name: List pods
         run: |
           kubectl get pods
+
+      - name: Query AWS CloudWatch Alarm State
+        id: check_alarm
+        run: |
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-onebox-cpu-utilization-anomaly-detection" --query "MetricAlarms[0].StateValue" --output text)
+          echo "Alarm state: $ALARM_STATE"
+          if [ "$ALARM_STATE" = "ALARM" ]; then
+            echo "::set-output name=alarm_triggered::true"
+          fi
+
+      - name: Handle ALARM state
+        if: steps.check_alarm.outputs.alarm_triggered == 'true'
+        run: |
+          echo "Alarm state is ALARM. Handling error..."
+          # Here you can add specific actions, such as sending notifications, triggering other workflows, or rolling back deployments
+          exit 1
+
+      - name: Continue if not in ALARM
+        if: steps.check_alarm.outputs.alarm_triggered != 'true'
+        run: echo "Alarm is not in ALARM state. Proceeding with normal operations."
+
 
     # - uses: azure/k8s-set-context@v3
     #         with:
