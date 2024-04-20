@@ -70,9 +70,9 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4.1.3
-        # with:
-        #   repository: sudopablosilva/argo
-        #   ref: main
+        with:
+          # repository: sudopablosilva/argo
+          ref: develop
 
       - name: Set up Python
         uses: actions/setup-python@v5.1.0
