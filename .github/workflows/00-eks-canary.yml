@@ -87,31 +87,29 @@ jobs:
         run: |
           import yaml
           import subprocess
-          import sys
 
-          def modify_and_print_yaml(clusterName, cellName, serviceName, workloadType, templatePath):
-              with open(templatePath, 'r') as file:
+          def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, template_path):
+              with open(template_path, 'r') as file:
                   data = yaml.safe_load(file)
-
-              data['metadata']['name'] = f'{clusterName}-{cellName}-{serviceName}-{workloadType}'
+              
+              data['metadata']['name'] = f'{cluster_name}-{cell_name}-{service_name}-{workload_type}'
               element = data['spec']['generators'][0]['list']['elements'][0]
-              element['clusterName'] = clusterName
-              element['cellName'] = cellName
-              element['serviceName'] = serviceName
-              element['workloadType'] = workloadType
-
+              element['clusterName'] = cluster_name
+              element['cellName'] = cell_name
+              element['serviceName'] = service_name
+              element['workloadType'] = workload_type
+              
               return yaml.safe_dump(data)
 
           clusters = ["cell-1", "cell-2"]
           types = ["onebox", "normal"]
-          for clusterName in clusters:
-            for workloadType in types:
-              yaml_output = modify_and_print_yaml(clusterName, clusterName, serviceName, workloadType, templatePath)
+          for cluster_name in clusters:
+            for workload_type in types:
+              yaml_output = modify_and_print_yaml(cluster_name, cluster_name, "${{ env.serviceName }}", workload_type, "${{ env.templatePath }}")
               with open('modified_manifest.yaml', 'w') as f:
                 f.write(yaml_output)
               subprocess.run(['kubectl', 'apply', '-f', 'modified_manifest.yaml'])
-              print(f"Deployed {type} in {cluster}")
-          # Implement your check and wait logic here
+              print(f"Deployed {workload_type} in {cluster_name}")
         shell: python
     # - uses: azure/k8s-set-context@v3
     #         with:
