@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: "{{clusterName}}-{{cellName}}-{{serviceName}}-{{workloadType}}"
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - clusterName: {{clusterName}}
+        cellName: {{cellName}}
+        serviceName: {{serviceName}}
+        workloadType: {{workloadType}}
+  template:
+    metadata:
+      name: "{{clusterName}}-{{cellName}}-{{serviceName}}-{{workloadType}}"
+    spec:
+      project: default
+      source:
+        helm:
+          values: |
+            podLabels:
+              clusterlabel: {{clusterName}}-{{cellName}}-{{serviceName}}-{{workloadType}}
+            cellName: {{cellName}}
+            serviceName: {{serviceName}}
+            clusterName: {{clusterName}}
+            workloadType: {{workloadType}}
+        path: myapp
+        repoURL: https://github.com/sudopablosilva/argo.git
+        targetRevision: main
+      destination:
+        name: '{{clusterName}}'
+        namespace: default
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
