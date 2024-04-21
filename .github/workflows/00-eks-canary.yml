@@ -20,7 +20,7 @@ jobs:
     outputs:
       aws_region: ${{ steps.set_output.outputs.aws_region }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.1.1
       - name: Set region output
         id: set_output
         run: echo "::set-output name=aws_region::${{ env.AWS_REGION }}"
@@ -41,12 +41,27 @@ jobs:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
         run: python adapt_applicationsets.py
-
+      - name: Upload Manifests
+        uses: actions/upload-artifact@v4.3.2
+        with:
+          name: manifests
+          path: modified_manifest_*.yaml
   deploy:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Download Manifests
+        uses: actions/download-artifact@v2
+        with:
+          name: manifests
+          path: .
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
       - name: Configure kubectl
         run: aws eks update-kubeconfig --name management --region ${{ needs.setup.outputs.aws_region }}
       - name: Deploy Workloads Sequentially
