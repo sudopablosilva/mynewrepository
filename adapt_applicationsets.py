@@ -31,6 +31,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
 
+cells = os.getenv('cells')
 # Split the string into a list based on the comma
 cell_list = cells.split(',')
 types = ["onebox", "normal"]
