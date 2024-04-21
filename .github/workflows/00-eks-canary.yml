@@ -3,9 +3,14 @@ name: EKS-Canary
 on:
   push:
   workflow_dispatch:
+    inputs:
+      cells:
+        description: 'Comma-separated list of cells to deploy (e.g., cell-1,cell-2,cell-3)'
+        required: true
+        default: 'cell-1,cell-2,cell-3'
 
 env:
-  AWS_REGION: us-east-2  # Define AWS region here to avoid hardcoding in steps
+  AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
   TEMPLATE_PATH: applicationsets.yaml
 
@@ -13,60 +18,53 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      aws_region: ${{ env.AWS_REGION }}
+      aws_region: ${{ steps.set_output.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v2
+      - name: Set region output
+        id: set_output
+        run: echo "::set-output name=aws_region::${{ env.AWS_REGION }}"
       - uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
       - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
-          
+        run: pip install pyyaml
       - name: Generate manifests
         env:
-          serviceName: openfinance
-          templatePath: applicationsets.yaml
+          serviceName: ${{ env.SERVICE_NAME }}
+          templatePath: ${{ env.TEMPLATE_PATH }}
         run: python adapt_applicationsets.py
 
   deploy:
     needs: setup
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        cell: [cell-1, cell-2, cell-3]
     steps:
       - uses: actions/checkout@v2
       - name: Configure kubectl
         run: aws eks update-kubeconfig --name management --region ${{ needs.setup.outputs.aws_region }}
-      - name: Deploy onebox workload
-        run: kubectl apply -f modified_manifest_${{ matrix.cell }}_onebox.yaml
-      - name: Check onebox workload
-        id: check_onebox
+      - name: Deploy Workloads Sequentially
         run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${{ matrix.cell }}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
-          echo "Alarm state: $ALARM_STATE"
-          if [ "$ALARM_STATE" = "ALARM" ]; then
-            echo "Onebox workload failed for ${{ matrix.cell }}"
-            exit 1
-          fi
-      - name: Deploy normal workload
-        run: kubectl apply -f modified_manifest_${{ matrix.cell }}_normal.yaml
-      - name: Check normal workload
-        id: check_normal
-        run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${{ matrix.cell }}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
-          echo "Alarm state: $ALARM_STATE"
-          if [ "$ALARM_STATE" = "ALARM" ]; then
-            echo "Normal workload failed for ${{ matrix.cell }}"
-            exit 1
-          fi
+          IFS=',' read -ra CELLS <<< "${{ github.event.inputs.cells }}"
+          for CELL in "${CELLS[@]}"; do
+            echo "Deploying ${CELL}"
+            kubectl apply -f modified_manifest_${CELL}_onebox.yaml
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            echo "Alarm state for ${CELL}: $ALARM_STATE"
+            if [ "$ALARM_STATE" = "ALARM" ]; then
+              echo "${CELL} onebox workload failed"
+              exit 1
+            fi
+            kubectl apply -f modified_manifest_${CELL}_normal.yaml
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            echo "Alarm state for ${CELL}: $ALARM_STATE"
+            if [ "$ALARM_STATE" = "ALARM" ]; then
+              echo "${CELL} normal workload failed"
+              exit 1
+            fi
+          done
