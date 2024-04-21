@@ -2,17 +2,14 @@ name: EKS-Canary
 
 on:
   push:
+  
   workflow_dispatch:
-    inputs:
-      cells:
-        description: 'Comma-separated list of cells to deploy (e.g., cell-1,cell-2,cell-3)'
-        required: true
-        default: 'cell-1,cell-2,cell-3'
 
 env:
   AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
   TEMPLATE_PATH: applicationsets.yaml
+  CELLS: 'cell-1,cell-2,cell-3'
 
 jobs:
   setup:
@@ -40,7 +37,7 @@ jobs:
         env:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
-          cells: ${{ inputs.cells }}
+          cells: ${{ env.CELLS }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
         uses: actions/upload-artifact@v4.3.2
@@ -66,8 +63,10 @@ jobs:
       - name: Configure kubectl
         run: aws eks update-kubeconfig --name management --region ${{ needs.setup.outputs.aws_region }}
       - name: Deploy Workloads Sequentially
+        env:
+          CELLS: ${{ env.CELLS }}
         run: |
-          IFS=',' read -ra CELLS <<< "${{ github.event.inputs.cells }}"
+          IFS=',' read -ra CELLS <<< "${CELLS}"
           for CELL in "${CELLS[@]}"; do
             echo "Deploying ${CELL}"
             kubectl apply -f modified_manifest_${CELL}_onebox.yaml
