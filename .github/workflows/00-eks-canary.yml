@@ -40,7 +40,7 @@ jobs:
         env:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
-          numberOfCells: ${{ env.NUMBER_OF_CELLS }}
+          cells: ${{ inputs.cells }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
         uses: actions/upload-artifact@v4.3.2
