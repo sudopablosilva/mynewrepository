@@ -39,5 +39,6 @@ for cluster_name in clusters:
         modified_manifest = f'modified_manifest_{cluster_name}_{workload_type}.yaml'
         with open(modified_manifest, 'w') as f:
             f.write(yaml_output)
+        subprocess.run(['cat', modified_manifest])    
         subprocess.run(['kubectl', 'apply', '-f', modified_manifest])
         print(f"Deployed {workload_type} in {cluster_name}")
