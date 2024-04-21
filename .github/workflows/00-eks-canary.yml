@@ -52,16 +52,16 @@ jobs:
         run: |
           kubectl get pods -A
 
-      - name: Query AWS CloudWatch Alarm State
+      - name: Query high-severity-aggregate-rollback
         id: check_alarm
         run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-onebox-cpu-utilization-anomaly-detection" --query "MetricAlarms[0].StateValue" --output text)
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "high-severity-aggregate-rollback" --query "MetricAlarms[0].StateValue" --output text)
           echo "Alarm state: $ALARM_STATE"
           if [ "$ALARM_STATE" = "ALARM" ]; then
             echo "::set-output name=alarm_triggered::true"
           fi
 
-      - name: Handle ALARM state
+      - name: Handle high-severity-aggregate-rollback
         if: steps.check_alarm.outputs.alarm_triggered == 'true'
         run: |
           echo "Alarm state is ALARM. Handling error..."
