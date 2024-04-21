@@ -70,7 +70,7 @@ jobs:
         env:
           CELLS: ${{ env.CELLS }}
           BAKE_TIME_IN_SECONDS: ${{ env.BAKE_TIME_IN_SECONDS }}
-          AWS_REGION: ${AWS_REGION}
+          AWS_REGION: ${{ env.AWS_REGION }}
         run: |
           # Create an array based on CELLS value split by comma
           IFS=',' read -ra CELLS <<< "${CELLS}"
