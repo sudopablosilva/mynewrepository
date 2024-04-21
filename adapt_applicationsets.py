@@ -31,9 +31,10 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
 
-clusters = ["cell-1", "cell-2"]
+# Split the string into a list based on the comma
+cell_list = cells.split(',')
 types = ["onebox", "normal"]
-for cluster_name in clusters:
+for cluster_name in cell_list:
     for workload_type in types:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'))
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
