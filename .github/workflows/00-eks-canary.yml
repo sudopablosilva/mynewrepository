@@ -31,7 +31,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5.1.0
         with:
           python-version: '3.8'
       - name: Install Python dependencies
@@ -40,6 +40,7 @@ jobs:
         env:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
+          numberOfCells: ${{ env.NUMBER_OF_CELLS }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
         uses: actions/upload-artifact@v4.3.2
