@@ -112,9 +112,9 @@ jobs:
           kubectl delete -f modified_manifest_cell-1_onebox.yaml
           exit 1
 
-      - name: Deploy normal workload
+      - name: Deploy normal
         run: |
-          kubectl apply -f modified_manifest_cell-1_workload.yaml
+          kubectl apply -f modified_manifest_cell-1_normal.yaml
 
       - name: Query cell-1-opf-high-severity-aggregate-rollback
         id: query-cell-1-opf-high-severity-aggregate-rollback
@@ -135,5 +135,5 @@ jobs:
         run: |
           echo "Alarm state is ALARM. Handling error..."
           # Here you can add specific actions, such as sending notifications, triggering other workflows, or rolling back deployments
-          kubectl delete -f modified_manifest_cell-1_onebox.yaml
+          kubectl delete -f modified_manifest_cell-1_normal.yaml
           exit 1
