@@ -11,6 +11,9 @@ env:
 jobs:
   eks-onebox-gradual-deployment:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cell: [cell-1, cell-2, cell-3]
     permissions:
       id-token: write
       contents: read
@@ -30,8 +33,8 @@ jobs:
       - name: Update kube config
         run: aws eks update-kubeconfig --name management --region us-east-2
 
-      - name: List pods
-        run: kubectl get pods -A
+      # - name: List pods
+      #   run: kubectl get pods -A
 
       - name: Checkout code
         uses: actions/checkout@v4.1.3
@@ -50,38 +53,41 @@ jobs:
           templatePath: applicationsets.yaml
         run: python adapt_applicationsets.py
 
-      - name: Deploy onebox workload
-        run: kubectl apply -f modified_manifest_cell-1_onebox.yaml
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name management --region us-east-2
 
-      - name: Query cell-1-opf-high-severity-aggregate-rollback
+      - name: Deploy onebox workload
+        run: kubectl apply -f modified_manifest_${{ matrix.cell }}_onebox.yaml
+
+      - name: Query high-severity-aggregate-rollback
         id: check_alarm
         run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text )
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${{ matrix.cell }}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text)
           echo "Alarm state: $ALARM_STATE"
           if [ "$ALARM_STATE" = "ALARM" ]; then
             echo "::set-output name=alarm_triggered::true"
           fi
 
-      - name: Handle cell-1-opf-high-severity-aggregate-rollback
+      - name: Handle high-severity-aggregate-rollback
         if: steps.check_alarm.outputs.alarm_triggered == 'true'
         run: |
           echo "Alarm state is ALARM. Handling error..."
           exit 1
 
-      - name: Query cell-1-opf-onebox-rollback-alarm
+      - name: Query onebox-rollback-alarm
         id: check_alarm_onebox
         run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text )
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${{ matrix.cell }}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text)
           echo "Alarm state: $ALARM_STATE"
           if [ "$ALARM_STATE" = "ALARM" ]; then
             echo "::set-output name=alarm_triggered::true"
           fi
 
-      - name: Handle cell-1-opf-onebox-rollback-alarm
+      - name: Handle onebox-rollback-alarm
         if: steps.check_alarm_onebox.outputs.alarm_triggered == 'true'
         run: |
           echo "Alarm state is ALARM. Handling error..."
           exit 1
 
-      - name: Deploy normal
-        run: kubectl apply -f modified_manifest_cell-1_normal.yaml
+      - name: Deploy normal workload
+        run: kubectl apply -f modified_manifest_${{ matrix.cell }}_normal.yaml
