@@ -38,5 +38,5 @@ for cluster_name in clusters:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'))
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             f.write(yaml_output)
-        subprocess.run(['kubectl', 'apply', '-f', f'modified_manifest_{cluster_name}_{workload_type}.yaml'])
+        # subprocess.run(['kubectl', 'apply', '-f', f'modified_manifest_{cluster_name}_{workload_type}.yaml'])
         print(f"Deployed {workload_type} in {cluster_name}")
