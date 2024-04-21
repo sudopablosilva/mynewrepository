@@ -84,5 +84,4 @@ jobs:
         env:
           serviceName: openfinance
           templatePath: applicationsets.yaml
-        run: adapt_applicationsets.py
-        shell: python
+        run: python adapt_applicationsets.py
