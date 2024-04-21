@@ -53,40 +53,34 @@ jobs:
       - name: Deploy onebox workload
         run: kubectl apply -f modified_manifest_cell-1_onebox.yaml
 
-      - name: Query high-severity-aggregate-rollback
+      - name: Query cell-1-opf-high-severity-aggregate-rollback
         id: check_alarm
         run: |
-          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "high-severity-aggregate-rollback" --alarm-types CompositeAlarm --query "CompositeAlarms[0].StateValue" --output text)
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text )
           echo "Alarm state: $ALARM_STATE"
           if [ "$ALARM_STATE" = "ALARM" ]; then
             echo "::set-output name=alarm_triggered::true"
           fi
 
-      - name: Handle high-severity-aggregate-rollback
+      - name: Handle cell-1-opf-high-severity-aggregate-rollback
         if: steps.check_alarm.outputs.alarm_triggered == 'true'
         run: |
           echo "Alarm state is ALARM. Handling error..."
           exit 1
 
-      - name: Query cell-1-opf-high-severity-aggregate-rollback
-        id: query-cell-1-opf-high-severity-aggregate-rollback
+      - name: Query cell-1-opf-onebox-rollback-alarm
+        id: check_alarm_onebox
         run: |
-          end=$((SECONDS+30))
-          while [ $SECONDS -lt $end ]; do
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --query "CompositeAlarms[0].StateValue" --output text)
-            echo "Alarm state: $ALARM_STATE"
-            if [ "$ALARM_STATE" = "ALARM" ]; then
-              echo "::set-output name=alarm_triggered::true"
-              break
-            fi
-            sleep 5
-          done
+          ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region us-east-2 --query "CompositeAlarms[0].StateValue" --output text )
+          echo "Alarm state: $ALARM_STATE"
+          if [ "$ALARM_STATE" = "ALARM" ]; then
+            echo "::set-output name=alarm_triggered::true"
+          fi
 
-      - name: Handle cell-1-opf-high-severity-aggregate-rollback
-        if: steps.query-cell-1-opf-high-severity-aggregate-rollback.outputs.alarm_triggered == 'true'
+      - name: Handle cell-1-opf-onebox-rollback-alarm
+        if: steps.check_alarm_onebox.outputs.alarm_triggered == 'true'
         run: |
           echo "Alarm state is ALARM. Handling error..."
-          kubectl delete -f modified_manifest_cell-1_normal.yaml
           exit 1
 
       - name: Deploy normal
