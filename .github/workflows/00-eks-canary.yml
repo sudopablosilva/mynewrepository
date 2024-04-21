@@ -63,19 +63,21 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
       - name: Configure kubectl
+        env:
+          AWS_REGION: ${AWS_REGION}
         run: aws eks update-kubeconfig --name management --region ${AWS_REGION}
       - name: Deploy Workloads Sequentially
         env:
           CELLS: ${{ env.CELLS }}
           BAKE_TIME_IN_SECONDS: ${{ env.BAKE_TIME_IN_SECONDS }}
-          AWS_REGION: ${{ needs.setup.outputs.aws_region }}
+          AWS_REGION: ${AWS_REGION}
         run: |
           # Create an array based on CELLS value split by comma
           IFS=',' read -ra CELLS <<< "${CELLS}"
 
           for CELL in "${CELLS[@]}"; do
             echo "Veryfing ${CELL}"
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
               echo "${CELL} normal workload failed"
@@ -89,7 +91,7 @@ jobs:
             echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
             echo "Monitoring ${CELL} onebox"
             sleep ${BAKE_TIME_IN_SECONDS}
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
               echo "${CELL} onebox workload failed"
@@ -99,7 +101,7 @@ jobs:
             echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
             echo "Monitoring ${CELL} normal workload"
             sleep ${BAKE_TIME_IN_SECONDS}
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
               echo "${CELL} normal workload failed"
