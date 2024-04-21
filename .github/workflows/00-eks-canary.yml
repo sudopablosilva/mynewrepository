@@ -46,11 +46,11 @@ jobs:
           aws-region: us-east-2
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name cell-1 --region us-east-2
+        run: aws eks update-kubeconfig --name management --region us-east-2
 
       - name: List pods
         run: |
-          kubectl get pods
+          kubectl get pods -A
 
       - name: Query AWS CloudWatch Alarm State
         id: check_alarm
