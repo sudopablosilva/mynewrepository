@@ -2,7 +2,6 @@ name: EKS-Canary
 
 on:
   push:
-  
   workflow_dispatch:
 
 env:
@@ -10,17 +9,19 @@ env:
   SERVICE_NAME: openfinance
   TEMPLATE_PATH: applicationsets.yaml
   CELLS: 'cell-1,cell-2,cell-3'
+  BAKE_TIME_IN_SECONDS: 5
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      aws_region: ${{ steps.set_output.outputs.aws_region }}
+      aws_region: ${{ steps.set_region_output.outputs.aws_region }}
     steps:
       - uses: actions/checkout@v4.1.1
-      - name: Set region output
-        id: set_output
-        run: echo "::set-output name=aws_region::${{ env.AWS_REGION }}"
+      - name: Set region output using environment file
+        id: set_region_output
+        run: |
+          echo "aws_region=${{ env.AWS_REGION }}" >> $GITHUB_ENV
       - uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -44,6 +45,7 @@ jobs:
         with:
           name: manifests
           path: modified_manifest_*.yaml
+
   deploy:
     needs: setup
     runs-on: ubuntu-latest
@@ -65,11 +67,27 @@ jobs:
       - name: Deploy Workloads Sequentially
         env:
           CELLS: ${{ env.CELLS }}
+          BAKE_TIME_IN_SECONDS: ${{ env.BAKE_TIME_IN_SECONDS }}
         run: |
+          # Create an array based on CELLS value split by comma
           IFS=',' read -ra CELLS <<< "${CELLS}"
+
+          for CELL in "${CELLS[@]}"; do
+            echo "Veryfing ${CELL}"
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
+            echo "Alarm state for ${CELL}: $ALARM_STATE"
+            if [ "$ALARM_STATE" = "ALARM" ]; then
+              echo "${CELL} normal workload failed"
+              exit 1
+            fi
+          done
+          
           for CELL in "${CELLS[@]}"; do
             echo "Deploying ${CELL}"
             kubectl apply -f modified_manifest_${CELL}_onebox.yaml
+            echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
+            echo "Monitoring ${CELL} onebox"
+            sleep ${BAKE_TIME_IN_SECONDS}
             ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
@@ -77,6 +95,9 @@ jobs:
               exit 1
             fi
             kubectl apply -f modified_manifest_${CELL}_normal.yaml
+            echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
+            echo "Monitoring ${CELL} normal workload"
+            sleep ${BAKE_TIME_IN_SECONDS}
             ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${{ needs.setup.outputs.aws_region }} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
