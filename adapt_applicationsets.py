@@ -22,6 +22,8 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     
     data['metadata']['name'] = f'{cell_name}-{service_name}-{workload_type}'
     data['spec']['template']['metadata']['name'] = f'{cell_name}-{service_name}-{workload_type}'
+    data['spec']['template']['destination']['name'] = f'{cell_name}'
+    
     element = data['spec']['generators'][0]['list']['elements'][0]
     element['clusterName'] = cluster_name
     element['cellName'] = cell_name
