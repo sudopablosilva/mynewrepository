@@ -85,3 +85,55 @@ jobs:
           serviceName: openfinance
           templatePath: applicationsets.yaml
         run: python adapt_applicationsets.py
+
+      - name: Deploy onebox workload
+        run: |
+          kubectl apply -f modified_manifest_cell-1_onebox.yaml
+
+      - name: Query cell-1-opf-onebox-rollback-alarm
+        id: query-cell-1-opf-onebox-rollback-alarm
+        run: |
+          end=$((SECONDS+30))
+          while [ $SECONDS -lt $end ]; do
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-onebox-rollback-alarm" --query "MetricAlarms[0].StateValue" --output text)
+            echo "Alarm state: $ALARM_STATE"
+            if [ "$ALARM_STATE" = "ALARM" ]; then
+              echo "::set-output name=alarm_triggered::true"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Handle cell-1-opf-onebox-rollback-alarm
+        if: steps.query-cell-1-opf-onebox-rollback-alarm.outputs.alarm_triggered == 'true'
+        run: |
+          echo "Alarm state is ALARM. Handling error..."
+          # Here you can add specific actions, such as sending notifications, triggering other workflows, or rolling back deployments
+          kubectl delete -f modified_manifest_cell-1_onebox.yaml
+          exit 1
+
+      - name: Deploy normal workload
+        run: |
+          kubectl apply -f modified_manifest_cell-1_workload.yaml
+
+      - name: Query cell-1-opf-high-severity-aggregate-rollback
+        id: query-cell-1-opf-high-severity-aggregate-rollback
+        run: |
+          end=$((SECONDS+30))
+          while [ $SECONDS -lt $end ]; do
+            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "cell-1-opf-high-severity-aggregate-rollback" --query "MetricAlarms[0].StateValue" --output text)
+            echo "Alarm state: $ALARM_STATE"
+            if [ "$ALARM_STATE" = "ALARM" ]; then
+              echo "::set-output name=alarm_triggered::true"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Handle cell-1-opf-high-severity-aggregate-rollback
+        if: steps.query-cell-1-opf-high-severity-aggregate-rollback.outputs.alarm_triggered == 'true'
+        run: |
+          echo "Alarm state is ALARM. Handling error..."
+          # Here you can add specific actions, such as sending notifications, triggering other workflows, or rolling back deployments
+          kubectl delete -f modified_manifest_cell-1_onebox.yaml
+          exit 1
