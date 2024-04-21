@@ -36,9 +36,7 @@ types = ["onebox", "normal"]
 for cluster_name in clusters:
     for workload_type in types:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'))
-        modified_manifest = f'modified_manifest_{cluster_name}_{workload_type}.yaml'
-        with open(modified_manifest, 'w') as f:
+        with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             f.write(yaml_output)
-        subprocess.run(['cat', modified_manifest])    
-        subprocess.run(['kubectl', 'apply', '-f', modified_manifest])
+        subprocess.run(['kubectl', 'apply', '-f', 'modified_manifest.yaml'])
         print(f"Deployed {workload_type} in {cluster_name}")
