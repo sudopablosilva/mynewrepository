@@ -59,6 +59,9 @@ jobs:
         with:
           name: manifests
           path: .
+      - name: Show manifest
+        run: |
+          cat modified_manifest_cell-1_onebox.yaml
       - uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
