@@ -16,7 +16,7 @@ def unquoted_representer(dumper, data):
 # Adding custom representers to the Dumper
 LiteralDumper.add_representer(str, unquoted_representer)
 
-def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, template_path):
+def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, template_path, BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS):
     with open(template_path, 'r') as file:
         data = yaml.safe_load(file)
     
@@ -29,6 +29,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     element['cellName'] = cell_name
     element['serviceName'] = service_name
     element['workloadType'] = workload_type
+    element['BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS'] = BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS
     
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
@@ -40,7 +41,7 @@ cell_list = cells.split(',')
 types = ["onebox", "normal"]
 for cluster_name in cell_list:
     for workload_type in types:
-        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'))
+        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'), os.getenv('BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS'))
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             f.write(yaml_output)
         # subprocess.run(['kubectl', 'apply', '-f', f'modified_manifest_{cluster_name}_{workload_type}.yaml'])
