@@ -44,6 +44,7 @@ for cluster_name in cell_list:
     for workload_type in types:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'), os.getenv('BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS'))
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
+            print(f'Writing modified_manifest_{cluster_name}_{workload_type}.yaml')
             f.write(yaml_output)
         # subprocess.run(['kubectl', 'apply', '-f', f'modified_manifest_{cluster_name}_{workload_type}.yaml'])
         print(f"Generated modified_manifest for {workload_type} in {cluster_name}")
