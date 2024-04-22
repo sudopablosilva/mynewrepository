@@ -45,4 +45,4 @@ for cluster_name in cell_list:
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             f.write(yaml_output)
         # subprocess.run(['kubectl', 'apply', '-f', f'modified_manifest_{cluster_name}_{workload_type}.yaml'])
-        print(f"Deployed {workload_type} in {cluster_name}")
+        print(f"Generated modified_manifest for {workload_type} in {cluster_name}")
