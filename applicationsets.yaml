@@ -29,6 +29,7 @@ spec:
             serviceName: {{.serviceName }}
             clusterName: {{.clusterName }}
             workloadType: {{.workloadType }}
+            BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS: {{.BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS }}
         path: myapp
         repoURL: >-
           https://github.com/sudopablosilva/argo.git
