@@ -8,8 +8,10 @@ env:
   AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
   TEMPLATE_PATH: applicationsets.yaml
-  CELLS: 'cell-1,cell-2,cell-3'
-  BAKE_TIME_IN_SECONDS: 5
+  # CELLS: 'cell-1,cell-2,cell-3'
+  CELLS: 'cell-1'
+  BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS: 5
+  BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS: 60 
 
 jobs:
   setup:
@@ -39,6 +41,7 @@ jobs:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
           cells: ${{ env.CELLS }}
+          BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS: ${{ env.BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
         uses: actions/upload-artifact@v4.3.2
@@ -69,7 +72,7 @@ jobs:
       - name: Deploy Workloads Sequentially
         env:
           CELLS: ${{ env.CELLS }}
-          BAKE_TIME_IN_SECONDS: ${{ env.BAKE_TIME_IN_SECONDS }}
+          BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS: ${{ env.BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS }}
           AWS_REGION: ${{ env.AWS_REGION }}
         run: |
           # Create an array based on CELLS value split by comma
@@ -88,9 +91,9 @@ jobs:
           for CELL in "${CELLS[@]}"; do
             echo "Deploying ${CELL}"
             kubectl apply -f modified_manifest_${CELL}_onebox.yaml
-            echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
+            echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
             echo "Monitoring ${CELL} onebox"
-            sleep ${BAKE_TIME_IN_SECONDS}
+            sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
             ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
@@ -98,9 +101,9 @@ jobs:
               exit 1
             fi
             kubectl apply -f modified_manifest_${CELL}_normal.yaml
-            echo "Waiting ${BAKE_TIME_IN_SECONDS} seconds before checking alarm"
-            echo "Monitoring ${CELL} normal workload"
-            sleep ${BAKE_TIME_IN_SECONDS}
+            # echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
+            # echo "Monitoring ${CELL} normal workload"
+            # sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
             ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
             echo "Alarm state for ${CELL}: $ALARM_STATE"
             if [ "$ALARM_STATE" = "ALARM" ]; then
