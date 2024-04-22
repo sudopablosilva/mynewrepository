@@ -100,14 +100,14 @@ jobs:
               echo "${CELL} onebox workload failed"
               exit 1
             fi
-            kubectl apply -f modified_manifest_${CELL}_normal.yaml
-            # echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
-            # echo "Monitoring ${CELL} normal workload"
-            # sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
-            echo "Alarm state for ${CELL}: $ALARM_STATE"
-            if [ "$ALARM_STATE" = "ALARM" ]; then
-              echo "${CELL} normal workload failed"
-              exit 1
-            fi
+            # kubectl apply -f modified_manifest_${CELL}_normal.yaml
+            # # echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
+            # # echo "Monitoring ${CELL} normal workload"
+            # # sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
+            # ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
+            # echo "Alarm state for ${CELL}: $ALARM_STATE"
+            # if [ "$ALARM_STATE" = "ALARM" ]; then
+            #   echo "${CELL} normal workload failed"
+            #   exit 1
+            # fi
           done
