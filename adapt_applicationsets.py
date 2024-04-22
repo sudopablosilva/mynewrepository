@@ -38,7 +38,8 @@ cells = os.getenv('cells')
 print(f'This is the input cells: {cells}')
 # Split the string into a list based on the comma
 cell_list = cells.split(',')
-types = ["onebox", "normal"]
+# types = ["onebox", "normal"]
+types = ["onebox"]
 for cluster_name in cell_list:
     for workload_type in types:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'), os.getenv('BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS'))
