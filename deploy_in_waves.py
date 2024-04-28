@@ -1,8 +1,9 @@
 import time
 import subprocess
+import os
 
 # Define the cells as a comma-separated string
-CELLS = "cell1,cell2,cell3"
+CELLS = os.getenv('cells')
 
 def verify_cell(cell):
     print(f"Verifying {cell}")
