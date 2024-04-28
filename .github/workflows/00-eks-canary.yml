@@ -10,6 +10,7 @@ env:
   TEMPLATE_PATH: applicationsets.yaml
   # CELLS: 'cell-1,cell-2,cell-3'
   CELLS: 'cell-1,cell-2'
+  WORKLOAD_TYPES: 'onebox,normal'
   BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS: 5
   BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS: 100s
 
@@ -41,6 +42,7 @@ jobs:
           serviceName: ${{ env.SERVICE_NAME }}
           templatePath: ${{ env.TEMPLATE_PATH }}
           cells: ${{ env.CELLS }}
+          workloadTypes: ${{ env.WORKLOAD_TYPES }}
           BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS: ${{ env.BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
