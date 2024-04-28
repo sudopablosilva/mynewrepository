@@ -3,6 +3,10 @@ import subprocess
 import os
 import logging
 
+# Set the timezone to UTC-3
+os.environ['TZ'] = 'UTC-3'
+time.tzset()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
