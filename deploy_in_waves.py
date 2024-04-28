@@ -4,6 +4,7 @@ import os
 
 # Define the cells as a comma-separated string
 CELLS = os.getenv('CELLS')
+AWS_REGION = os.getenv('AWS_REGION')
 
 def verify_cell(cell):
     print(f"Verifying {cell}")
