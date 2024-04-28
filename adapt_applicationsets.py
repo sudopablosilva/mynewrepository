@@ -35,13 +35,16 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
 
 cells = os.getenv('cells')
+workloadTypes = os.getenv('workloadTypes')
 print(f'This is the input cells: {cells}')
+print(f'This is the input workloadTypes: {workloadTypes}')
 # Split the string into a list based on the comma
 cell_list = cells.split(',')
-# types = ["onebox", "normal"]
-types = ["onebox"]
+
+workloadTypes = workloadTypes.split(',')
+
 for cluster_name in cell_list:
-    for workload_type in types:
+    for workload_type in workloadTypes:
         yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'), os.getenv('BAKE_TIME_BETWEEN_CANARY_AND_STABLE_IN_SECONDS'))
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             print(f'Writing modified_manifest_{cluster_name}_{workload_type}.yaml')
