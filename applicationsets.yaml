@@ -14,6 +14,7 @@ spec:
         serviceName: opf
         clusterName: cell-1
         workloadType: onebox
+        timeBetweenCanarySteps: 5s
   template:
     metadata:
       name: '{{.cluster}}-guestbook'
