@@ -1,5 +1,2 @@
-time
-subprocess
-os
-logging
+logging==0.4.9.6
 pyyaml
