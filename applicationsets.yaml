@@ -9,12 +9,12 @@ spec:
   generators:
   - list:
       elements:
-      - cluster: cell-1
-        cellName: cell-1
-        serviceName: opf
-        clusterName: cell-1
-        workloadType: onebox
-        timeBetweenCanarySteps: 5s
+      - cluster: example_cell-1
+        cellName: example_cell-1
+        serviceName: example_opf
+        clusterName: example_cell-1
+        workloadType: example_onebox
+        timeBetweenCanarySteps: example_5s
   template:
     metadata:
       name: '{{.cluster}}-guestbook'
@@ -31,7 +31,7 @@ spec:
             clusterName: {{.clusterName }}
             workloadType: {{.workloadType }}
             timeBetweenCanarySteps: {{.timeBetweenCanarySteps }}
-        path: {{.serviceName }}
+        path: example_opf
         repoURL: >-
           https://github.com/sudopablosilva/argo.git
         targetRevision: main
