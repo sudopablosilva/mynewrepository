@@ -11,48 +11,54 @@ CELLS = os.getenv('CELLS')
 AWS_REGION = os.getenv('AWS_REGION')
 
 def calculate_bake_time(stage, cell_wave):
-    # Convert waiting times from hours to minutes
-    one_box_wait = 1  # 1 minute
-    first_wave_wait = 2  # 2 minutes
-    rest_waves_wait = 1  # 1 minute
-    data_points_wait = 1  # 1 minute
+    # Define bake time constants in minutes
+    ONE_BOX_WAIT = 1
+    FIRST_WAVE_WAIT = 2
+    REST_WAVES_WAIT = 1
+    DATA_POINTS_WAIT = 1
+    MAX_BAKE_TIME_MINUTES = 12
 
     bake_time = 0
     
     # Add bake time based on the stage and region wave
     if stage == 'one_box':
-        bake_time += one_box_wait
+        bake_time += ONE_BOX_WAIT
     elif stage == 'first_wave':
-        bake_time += first_wave_wait
+        bake_time += FIRST_WAVE_WAIT
     elif stage == 'rest_waves':
-        bake_time += (rest_waves_wait * cell_wave)
-    
-    # Add additional bake time for individual regions, AZs, or cells (not specified in the provided text)
-    # bake_time += additional_bake_time_for_regions
-    # bake_time += additional_bake_time_for_azs
-    # bake_time += additional_bake_time_for_cells
+        bake_time += (REST_WAVES_WAIT * cell_wave)
     
     # Add bake time for waiting for data points in metrics
-    bake_time += data_points_wait
+    bake_time += DATA_POINTS_WAIT
 
-    # Limit bake time to a maximum of 12 minutes
-    bake_time = min(bake_time, 12)
+    # Limit bake time to a maximum
+    bake_time = min(bake_time, MAX_BAKE_TIME_MINUTES)
 
     return bake_time
     
 def verify_cell(cell):
     logging.info(f"Verifying {cell}")
-    # Assume 'aws' and 'kubectl' are installed and configured
-    alarm_state = subprocess.run(
-        f"aws cloudwatch describe-alarms --alarm-names {cell}-opf-high-severity-aggregate-rollback --alarm-types CompositeAlarm --region {AWS_REGION} --query 'CompositeAlarms[0].StateValue' --output text",
-        shell=True,
-        capture_output=True,
-        text=True
-    ).stdout.strip()
-    logging.info(f"Alarm state for {cell}: {alarm_state}")
+    alarm_name = f"{cell}-opf-high-severity-aggregate-rollback"
+    alarm_state = get_alarm_state(alarm_name)
+    logging.info(f"Alarm state for {alarm_name}: {alarm_state}")
     if alarm_state == "ALARM":
         logging.error(f"{cell} normal workload failed")
         exit(1)
+
+def get_alarm_state(alarm_name):
+    # Assume 'aws' is installed and configured
+    try:
+        result = subprocess.run(
+            f"aws cloudwatch describe-alarms --alarm-names {alarm_name} --alarm-types CompositeAlarm --region {AWS_REGION} --query 'CompositeAlarms[0].StateValue' --output text",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error getting alarm state for {alarm_name}: {e}")
+        return "UNKNOWN"
 
 def deploy_cell(cell, manifest_file):
     logging.info(f"Deploying {cell}")
@@ -62,13 +68,9 @@ def deploy_cell(cell, manifest_file):
     logging.info(f"Waiting {bake_time_seconds} seconds before checking alarm")
     time.sleep(bake_time_seconds)
     logging.info(f"Monitoring {cell} onebox")
-    alarm_state = subprocess.run(
-        f"aws cloudwatch describe-alarms --alarm-names {cell}-opf-onebox-rollback-alarm --alarm-types CompositeAlarm --region {AWS_REGION} --query 'CompositeAlarms[0].StateValue' --output text",
-        shell=True,
-        capture_output=True,
-        text=True
-    ).stdout.strip()
-    logging.info(f"Alarm state for {cell}: {alarm_state}")
+    alarm_name = f"{cell}-opf-onebox-rollback-alarm"
+    alarm_state = get_alarm_state(alarm_name)
+    logging.info(f"Alarm state for {alarm_name}: {alarm_state}")
     if alarm_state == "ALARM":
         logging.error(f"{cell} onebox workload failed")
         exit(1)
@@ -77,13 +79,8 @@ def deploy_cell(cell, manifest_file):
     logging.info(f"Waiting {bake_time_seconds} seconds before checking alarm")
     time.sleep(bake_time_seconds)
     logging.info(f"Monitoring {cell} normal workload")
-    alarm_state = subprocess.run(
-        f"aws cloudwatch describe-alarms --alarm-names {cell}-opf-high-severity-aggregate-rollback --alarm-types CompositeAlarm --region {AWS_REGION} --query 'CompositeAlarms[0].StateValue' --output text",
-        shell=True,
-        capture_output=True,
-        text=True
-    ).stdout.strip()
-    logging.info(f"Alarm state for {cell}: {alarm_state}")
+    alarm_state = get_alarm_state(alarm_name)
+    logging.info(f"Alarm state for {alarm_name}: {alarm_state}")
     if alarm_state == "ALARM":
         logging.error(f"{cell} normal workload failed")
         exit(1)
