@@ -83,5 +83,5 @@ jobs:
       - name: Deploy in waves
         env:
           CELLS: ${{ env.CELLS }}
-          AWS_REGION: ${{ env.CELLS }}
+          AWS_REGION: ${{ env.AWS_REGION }}
         run: python deploy_in_waves.py
