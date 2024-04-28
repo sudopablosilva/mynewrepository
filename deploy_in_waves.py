@@ -6,6 +6,36 @@ import os
 CELLS = os.getenv('CELLS')
 AWS_REGION = os.getenv('AWS_REGION')
 
+def calculate_bake_time(stage, cell_wave):
+    # Convert waiting times from hours to minutes
+    one_box_wait = 1  # 1 minute
+    first_wave_wait = 2  # 2 minutes
+    rest_waves_wait = 1  # 1 minute
+    data_points_wait = 1  # 1 minute
+
+    bake_time = 0
+    
+    # Add bake time based on the stage and region wave
+    if stage == 'one_box':
+        bake_time += one_box_wait
+    elif stage == 'first_wave':
+        bake_time += first_wave_wait
+    elif stage == 'rest_waves':
+        bake_time += (rest_waves_wait * cell_wave)
+    
+    # Add additional bake time for individual regions, AZs, or cells (not specified in the provided text)
+    # bake_time += additional_bake_time_for_regions
+    # bake_time += additional_bake_time_for_azs
+    # bake_time += additional_bake_time_for_cells
+    
+    # Add bake time for waiting for data points in metrics
+    bake_time += data_points_wait
+
+    # Limit bake time to a maximum of 12 minutes
+    bake_time = min(bake_time, 12)
+
+    return bake_time
+    
 def verify_cell(cell):
     print(f"Verifying {cell}")
     # Assume 'aws' and 'kubectl' are installed and configured
