@@ -3,7 +3,7 @@ import subprocess
 import os
 
 # Define the cells as a comma-separated string
-CELLS = os.getenv('cells')
+CELLS = os.getenv('CELLS')
 
 def verify_cell(cell):
     print(f"Verifying {cell}")
