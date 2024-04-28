@@ -9,7 +9,7 @@ env:
   SERVICE_NAME: opf
   TEMPLATE_PATH: applicationsets.yaml
   # CELLS: 'cell-1,cell-2,cell-3'
-  CELLS: 'cell-1,cell-2'
+  CELLS: 'cell-1,cell-2,cell-3'
   WORKLOAD_TYPES: 'onebox,normal'
   TIME_BETWEEN_CANARY_STEPS_IN_SECONDS: 100s
 
