@@ -74,45 +74,14 @@ jobs:
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
         run: aws eks update-kubeconfig --name management --region ${AWS_REGION}
-      - name: Deploy Workloads Sequentially
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: '3.8'
+      - name: Install Python dependencies
+        run: pip install pyyaml
+      - name: Deploy in waves
         env:
           CELLS: ${{ env.CELLS }}
-          BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS: ${{ env.BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-        run: |
-          # Create an array based on CELLS value split by comma
-          IFS=',' read -ra CELLS <<< "${CELLS}"
-
-          for CELL in "${CELLS[@]}"; do
-            echo "Veryfing ${CELL}"
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
-            echo "Alarm state for ${CELL}: $ALARM_STATE"
-            if [ "$ALARM_STATE" = "ALARM" ]; then
-              echo "${CELL} normal workload failed"
-              exit 1
-            fi
-          done
-          
-          for CELL in "${CELLS[@]}"; do
-            echo "Deploying ${CELL}"
-            kubectl apply -f modified_manifest_${CELL}_onebox.yaml
-            echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
-            echo "Monitoring ${CELL} onebox"
-            sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-onebox-rollback-alarm" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
-            echo "Alarm state for ${CELL}: $ALARM_STATE"
-            if [ "$ALARM_STATE" = "ALARM" ]; then
-              echo "${CELL} onebox workload failed"
-              exit 1
-            fi
-            kubectl apply -f modified_manifest_${CELL}_normal.yaml
-            echo "Waiting ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS} seconds before checking alarm"
-            echo "Monitoring ${CELL} normal workload"
-            sleep ${BAKE_TIME_BETWEEN_ONEBOX_AND_NORMAL_IN_SECONDS}
-            ALARM_STATE=$(aws cloudwatch describe-alarms --alarm-names "${CELL}-opf-high-severity-aggregate-rollback" --alarm-types CompositeAlarm --region ${AWS_REGION} --query "CompositeAlarms[0].StateValue" --output text)
-            echo "Alarm state for ${CELL}: $ALARM_STATE"
-            if [ "$ALARM_STATE" = "ALARM" ]; then
-              echo "${CELL} normal workload failed"
-              exit 1
-            fi
-          done
+        run: python deploy_in_waves.py
