@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: us-east-2  # Centralized AWS region
-  SERVICE_NAME: openfinance
+  SERVICE_NAME: opf
   TEMPLATE_PATH: applicationsets.yaml
   # CELLS: 'cell-1,cell-2,cell-3'
   CELLS: 'cell-1'
