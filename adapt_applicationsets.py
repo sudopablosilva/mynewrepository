@@ -27,6 +27,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     
     element = data['spec']['generators'][0]['list']['elements'][0]
     element['clusterName'] = cluster_name
+    element['cluster'] = cluster_name
     element['cellName'] = cell_name
     element['serviceName'] = service_name
     element['workloadType'] = workload_type
@@ -37,7 +38,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
 
-cells = os.getenv('cells')
+cells = os.getenv('CELLS')
 workload_types = os.getenv('workloadTypes')
 service_name = os.getenv('serviceName')
 template_path = os.getenv('templatePath')
