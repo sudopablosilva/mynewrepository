@@ -11,7 +11,7 @@ spec:
       elements:
       - cluster: cell-1
         cellName: cell-1
-        serviceName: openfinance
+        serviceName: opf
         clusterName: cell-1
         workloadType: onebox
   template:
