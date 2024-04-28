@@ -23,6 +23,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     data['metadata']['name'] = f'{cell_name}-{service_name}-{workload_type}'
     data['spec']['template']['metadata']['name'] = f'{cell_name}-{service_name}-{workload_type}'
     data['spec']['template']['spec']['destination']['name'] = f'{cell_name}'
+    data['spec']['template']['spec']['source']['path'] = f'{service_name}'
     
     element = data['spec']['generators'][0]['list']['elements'][0]
     element['clusterName'] = cluster_name
@@ -30,22 +31,31 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     element['serviceName'] = service_name
     element['workloadType'] = workload_type
     element['timeBetweenCanarySteps'] = time_between_canary_steps
+
+
     
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
 
 cells = os.getenv('cells')
-workloadTypes = os.getenv('workloadTypes')
+workload_types = os.getenv('workloadTypes')
+service_name = os.getenv('serviceName')
+template_path = os.getenv('templatePath')
+time_between_canary_steps = os.getenv('timeBetweenCanarySteps')
+
 print(f'This is the input cells: {cells}')
-print(f'This is the input workloadTypes: {workloadTypes}')
+print(f'This is the input workloadTypes: {workload_types}')
+print(f'This is the input serviceName: {service_name}')
+print(f'This is the input templatePath: {template_path}')
+print(f'This is the input timeBetweenCanarySteps: {time_between_canary_steps}')
+
 # Split the string into a list based on the comma
 cell_list = cells.split(',')
-
-workloadTypes = workloadTypes.split(',')
+workload_types = workload_types.split(',')
 
 for cluster_name in cell_list:
-    for workload_type in workloadTypes:
-        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, os.getenv('serviceName'), workload_type, os.getenv('templatePath'), os.getenv('timeBetweenCanarySteps'))
+    for workload_type in workload_types:
+        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, service_name, workload_type, template_path, time_between_canary_steps)
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             print(f'Writing modified_manifest_{cluster_name}_{workload_type}.yaml')
             f.write(yaml_output)
