@@ -11,6 +11,7 @@ env:
   CELLS: 'cell-1,cell-2,cell-3'
   WORKLOAD_TYPES: 'onebox,normal'
   TIME_BETWEEN_CANARY_STEPS_IN_SECONDS: 100s
+  MAX_BAKE_TIME_SECONDS: 120
 
 jobs:
   setup:
@@ -83,4 +84,5 @@ jobs:
         env:
           CELLS: ${{ env.CELLS }}
           AWS_REGION: ${{ env.AWS_REGION }}
+          MAX_BAKE_TIME_SECONDS: ${{ env.MAX_BAKE_TIME_SECONDS }}
         run: python deploy_in_waves.py
