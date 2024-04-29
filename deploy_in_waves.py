@@ -41,7 +41,7 @@ def calculate_bake_time(stage, cell_wave):
     return bake_time
     
 def verify_cell(cell):
-    logging.info('#'*30)
+    logging.info('#'*120)
     logging.info(f"Verifying {cell}")
     alarm_name = f"{cell}-opf-high-severity-aggregate-rollback"
     alarm_state = get_alarm_state(alarm_name)
