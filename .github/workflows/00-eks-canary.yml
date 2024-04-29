@@ -8,10 +8,10 @@ env:
   AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
   TEMPLATE_PATH: applicationsets.yaml
-  CELLS: 'cell-1,cell-2'
+  CELLS: 'cell-1,cell-2,cell-3'
   WORKLOAD_TYPES: 'onebox,normal'
-  TIME_BETWEEN_CANARY_STEPS_IN_SECONDS: 100s
-  MAX_BAKE_TIME_SECONDS: 20
+  TIME_BETWEEN_CANARY_STEPS_IN_SECONDS: 60s
+  MAX_BAKE_TIME_SECONDS: 120
 
 jobs:
   setup:
