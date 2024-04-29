@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Define the cells as a comma-separated string
 CELLS = os.getenv('CELLS')
 AWS_REGION = os.getenv('AWS_REGION')
-MAX_BAKE_TIME_SECONDS = os.getenv('MAX_BAKE_TIME_SECONDS')
+MAX_BAKE_TIME_SECONDS = int(os.getenv('MAX_BAKE_TIME_SECONDS'))
 
 def calculate_bake_time(stage, cell_wave):
     # Define bake time constants in minutes
