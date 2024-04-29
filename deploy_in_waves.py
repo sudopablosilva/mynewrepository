@@ -13,14 +13,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Define the cells as a comma-separated string
 CELLS = os.getenv('CELLS')
 AWS_REGION = os.getenv('AWS_REGION')
+MAX_BAKE_TIME_SECONDS = os.getenv('MAX_BAKE_TIME_SECONDS')
 
 def calculate_bake_time(stage, cell_wave):
     # Define bake time constants in minutes
-    ONE_BOX_WAIT = 1
-    FIRST_WAVE_WAIT = 2
-    REST_WAVES_WAIT = 1
-    DATA_POINTS_WAIT = 1
-    MAX_BAKE_TIME_MINUTES = 12
+    ONE_BOX_WAIT = 30
+    FIRST_WAVE_WAIT = 60
+    REST_WAVES_WAIT = 30
+    DATA_POINTS_WAIT = 0 # The bake time includes requirements to wait for a specific number of data points in the team’s metrics (for example, "wait for at least 100 requests to the Create API") to ensure that enough requests have occurred to make it likely that the new code has been fully exercised.
 
     bake_time = 0
     
@@ -36,7 +36,7 @@ def calculate_bake_time(stage, cell_wave):
     bake_time += DATA_POINTS_WAIT
 
     # Limit bake time to a maximum
-    bake_time = min(bake_time, MAX_BAKE_TIME_MINUTES)
+    bake_time = min(bake_time, MAX_BAKE_TIME_SECONDS)
 
     return bake_time
     
@@ -68,7 +68,7 @@ def deploy_cell(cell, manifest_file):
     logging.info(f"Deploying {cell}")
     # Assuming 'kubectl' is configured to apply manifests
     subprocess.run(f"kubectl apply -f {manifest_file}", shell=True, check=True)
-    bake_time_seconds = calculate_bake_time('one_box', 1) * 60  # Convert bake time from minutes to seconds
+    bake_time_seconds = calculate_bake_time('one_box', 1)
     logging.info(f"Waiting {bake_time_seconds} seconds before checking alarm")
     time.sleep(bake_time_seconds)
     logging.info(f"Monitoring {cell} onebox")
@@ -79,10 +79,11 @@ def deploy_cell(cell, manifest_file):
         logging.error(f"{cell} onebox workload failed")
         exit(1)
 
-    bake_time_seconds = calculate_bake_time('rest_waves', 1) * 60  # Assuming rest_waves bake time
+    bake_time_seconds = calculate_bake_time('rest_waves', 1)  # Assuming rest_waves bake time
     logging.info(f"Waiting {bake_time_seconds} seconds before checking alarm")
     time.sleep(bake_time_seconds)
     logging.info(f"Monitoring {cell} normal workload")
+    alarm_name = f"{cell}-opf-high-severity-aggregate-rollback"
     alarm_state = get_alarm_state(alarm_name)
     logging.info(f"Alarm state for {alarm_name}: {alarm_state}")
     if alarm_state == "ALARM":
