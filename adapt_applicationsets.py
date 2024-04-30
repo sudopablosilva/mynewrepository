@@ -16,7 +16,7 @@ def unquoted_representer(dumper, data):
 # Adding custom representers to the Dumper
 LiteralDumper.add_representer(str, unquoted_representer)
 
-def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, template_path, time_between_canary_steps):
+def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, template_path, time_between_canary_steps, image_tag):
     with open(template_path, 'r') as file:
         data = yaml.safe_load(file)
     
@@ -32,8 +32,7 @@ def modify_and_print_yaml(cluster_name, cell_name, service_name, workload_type, 
     element['serviceName'] = service_name
     element['workloadType'] = workload_type
     element['timeBetweenCanarySteps'] = time_between_canary_steps
-
-
+    element['imageTag'] = image_tag
     
     # Use the custom dumper to write the YAML without quotes
     return yaml.dump(data, Dumper=LiteralDumper, default_flow_style=False)
@@ -43,6 +42,7 @@ workload_types = os.getenv('workloadTypes')
 service_name = os.getenv('serviceName')
 template_path = os.getenv('templatePath')
 time_between_canary_steps = os.getenv('timeBetweenCanarySteps')
+image_tag = os.getenv('imageTag')
 
 print(f'This is the input cells: {cells}')
 print(f'This is the input workloadTypes: {workload_types}')
@@ -56,7 +56,7 @@ workload_types = workload_types.split(',')
 
 for cluster_name in cell_list:
     for workload_type in workload_types:
-        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, service_name, workload_type, template_path, time_between_canary_steps)
+        yaml_output = modify_and_print_yaml(cluster_name, cluster_name, service_name, workload_type, template_path, time_between_canary_steps, image_tag)
         with open(f'modified_manifest_{cluster_name}_{workload_type}.yaml', 'w') as f:
             print(f'Writing modified_manifest_{cluster_name}_{workload_type}.yaml')
             f.write(yaml_output)
