@@ -31,6 +31,7 @@ spec:
             clusterName: {{.clusterName }}
             workloadType: {{.workloadType }}
             timeBetweenCanarySteps: {{.timeBetweenCanarySteps }}
+            image.tag: 0.1
         path: example_opf
         repoURL: >-
           https://github.com/sudopablosilva/argo.git
