@@ -15,6 +15,7 @@ spec:
         clusterName: example_cell-1
         workloadType: example_onebox
         timeBetweenCanarySteps: example_5s
+        imageTag: example_0.1
   template:
     metadata:
       name: '{{.cluster}}-guestbook'
@@ -32,7 +33,7 @@ spec:
             workloadType: {{.workloadType }}
             timeBetweenCanarySteps: {{.timeBetweenCanarySteps }}
             image:
-              tag: "0.1"
+              tag: "{{.imageTag }}"
         path: example_opf
         repoURL: >-
           https://github.com/sudopablosilva/argo.git
