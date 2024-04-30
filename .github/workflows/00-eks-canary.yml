@@ -3,7 +3,11 @@ name: EKS-Canary
 on:
   # push:
   workflow_dispatch:
-
+    inputs:
+      imageTag:
+        description: 'Docker image tag'
+        required: true
+        default: '0.1'
 env:
   AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
@@ -43,6 +47,7 @@ jobs:
           cells: ${{ env.CELLS }}
           workloadTypes: ${{ env.WORKLOAD_TYPES }}
           timeBetweenCanarySteps: ${{ env.TIME_BETWEEN_CANARY_STEPS_IN_SECONDS }}
+          imageTag: ${{ inputs.imageTag }}
         run: python adapt_applicationsets.py
       - name: Upload Manifests
         uses: actions/upload-artifact@v4.3.2
