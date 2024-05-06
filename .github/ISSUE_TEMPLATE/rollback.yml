@@ -17,36 +17,32 @@ body:
       required: true
 
   - type: input
-    id: clusterName
     attributes:
-      label: "Nome do Cluster ECS"
-      description: "Insira o nome do cluster ECS"
+      label: ">>cluster_name<<"
+      description: "Insira o nome do cluster ECS aqui."
     validations:
       required: true
 
   - type: dropdown
-    id: deploymentType
     attributes:
-      label: "Tipo de Deployment"
+      label: ">>deployment_controller<<"
       description: "Escolha o tipo de deployment worker (tradicional ou onebox gradual)"
       options:
-        - Tradicional
-        - Onebox Gradual
+        - ECS/CodeDeploy
+        - External
     validations:
       required: true
 
   - type: input
-    id: serviceNameOnebox
     attributes:
-      label: "Nome do Serviço Onebox"
-      description: "Insira o nome do serviço ECS que tem o sufixo onebox"
+      label: ">>service_name_onebox<<"
+      description: "Insira o nome do serviço ECS que tem o sufixo onebox SOMENTE se o deployment_controller selecionado for 'External'"
     validations:
-      required: true
+      required: false
 
   - type: input
-    id: serviceName
     attributes:
-      label: "Nome do Serviço Tradicional"
-      description: "Insira o nome do serviço ECS tradicional"
+      label: "service_name"
+      description: "Insira o nome do serviço ECS"
     validations:
       required: true
