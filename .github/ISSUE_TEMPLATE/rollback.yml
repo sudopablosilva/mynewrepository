@@ -5,9 +5,8 @@ labels: [rollback]
 
 body:
   - type: dropdown
-    id: Environment
     attributes:
-      label: "Ambiente"
+      label: ">>environment<<"
       description: "Insira o ambiente para o Rollback (dev/hom/prod)"
       options:
         - dev
