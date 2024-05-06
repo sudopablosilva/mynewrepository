@@ -51,7 +51,7 @@ jobs:
           label_marker_end: '<<'
 
       - name: Extract Fields
-        id: extract
+        id: extract_fields
         run: |
           payload=${{ steps.parse.outputs.payload }}
           echo "Extracted payload: $payload"
@@ -63,11 +63,11 @@ jobs:
 
       - name: Display Extracted Information
         run: |
-          echo "Environment: ${{ steps.extract.outputs.environment }}"
-          echo "Cluster Name: ${{ steps.extract.outputs.cluster_name }}"
-          echo "Deployment Controller: ${{ steps.extract.outputs.deployment_controller }}"
-          echo "Service Name Onebox: ${{ steps.extract.outputs.service_name_onebox }}"
-          echo "Service Name: ${{ steps.extract.outputs.service_name }}"
+          echo "Environment: ${{ steps.extract_fields.outputs.environment }}"
+          echo "Cluster Name: ${{ steps.extract_fields.outputs.cluster_name }}"
+          echo "Deployment Controller: ${{ steps.extract_fields.outputs.deployment_controller }}"
+          echo "Service Name Onebox: ${{ steps.extract_fields.outputs.service_name_onebox }}"
+          echo "Service Name: ${{ steps.extract_fields.outputs.service_name }}"
 
   execute_rollback:
     needs: parse_issue_form
