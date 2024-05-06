@@ -1,47 +1,80 @@
-name: rollback
-description: 'O rollback será baseado na última execução com sucesso.'
-title: "Solicitação de rollback"
-labels: [rollback]
+name: Rollback Workflow
 
-body:
-  - type: dropdown
-    attributes:
-      label: ">>environment<<"
-      description: "Insira o ambiente para o Rollback (dev/hom/prod)"
-      options:
-        - dev
-        - hom
-        - prod
-    validations:
-      required: true
+on:
+  issues:
+    types: 
+      - opened
+      - labeled
+      - unlabeled
 
-  - type: input
-    attributes:
-      label: ">>cluster_name<<"
-      description: "Insira o nome do cluster ECS aqui."
-    validations:
-      required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para o rollback (dev/hom/prod)'
+        required: true
+        default: 'dev'
+      clusterName:
+        description: 'Nome do Cluster ECS'
+        required: true
+      deploymentType:
+        description: 'Tipo de Deployment (Tradicional ou Onebox Gradual)'
+        required: true
+        default: 'Tradicional'
+      serviceNameOnebox:
+        description: 'Nome do Serviço ECS com sufixo onebox'
+        required: true
+      serviceName:
+        description: 'Nome do Serviço ECS tradicional'
+        required: true
 
-  - type: dropdown
-    attributes:
-      label: ">>deployment_controller<<"
-      description: "Escolha o tipo de deployment worker (tradicional ou onebox gradual)"
-      options:
-        - ECS/CodeDeploy
-        - External
-    validations:
-      required: true
+jobs:
+  parse_issue_form:
+    if: contains(github.event.issue.labels.*.name, 'rollback')
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.extract.outputs.environment }}
+      cluster_name: ${{ steps.extract.outputs.cluster_name }}
+      deployment_controller: ${{ steps.extract.outputs.deployment_controller }}
+      service_name_onebox: ${{ steps.extract.outputs.service_name_onebox }}
+      service_name: ${{ steps.extract.outputs.service_name }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  - type: input
-    attributes:
-      label: ">>service_name_onebox<<"
-      description: "Insira o nome do serviço ECS que tem o sufixo onebox SOMENTE se o deployment_controller selecionado for 'External'"
-    validations:
-      required: false
+      - name: Parse Issue Form to JSON
+        id: parse
+        uses: peter-murray/issue-forms-body-parser@v4.1.0
+        with:
+          issue_id: ${{ github.event.issue.number }}
+          separator: '###'
+          label_marker_start: '>>'
+          label_marker_end: '<<'
 
-  - type: input
-    attributes:
-      label: "service_name"
-      description: "Insira o nome do serviço ECS"
-    validations:
-      required: true
+      - name: Extract Fields
+        id: extract
+        run: |
+          payload=${{ steps.parse.outputs.payload }}
+          echo "Extracted payload: $payload"
+          echo "::set-output name=environment::$(echo '$payload' | jq -r '.environment')"
+          echo "::set-output name=cluster_name::$(echo '$payload' | jq -r '.cluster_name')"
+          echo "::set-output name=deployment_controller::$(echo '$payload' | jq -r '.deployment_controller')"
+          echo "::set-output name=service_name_onebox::$(echo '$payload' | jq -r '.service_name_onebox')"
+          echo "::set-output name=service_name::$(echo '$payload' | jq -r '.service_name')"
+
+      - name: Display Extracted Information
+        run: |
+          echo "Environment: ${{ steps.extract.outputs.environment }}"
+          echo "Cluster Name: ${{ steps.extract.outputs.cluster_name }}"
+          echo "Deployment Controller: ${{ steps.extract.outputs.deployment_controller }}"
+          echo "Service Name Onebox: ${{ steps.extract.outputs.service_name_onebox }}"
+          echo "Service Name: ${{ steps.extract.outputs.service_name }}"
+
+  execute_rollback:
+    needs: parse_issue_form
+    if: ${{ needs.parse_issue_form.outputs.deployment_controller == 'External' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback External Deployment
+        run: |
+          echo "Performing rollback for External Deployment..."
+          echo "Service Name Onebox: ${{ needs.parse_issue_form.outputs.service_name_onebox }}"
