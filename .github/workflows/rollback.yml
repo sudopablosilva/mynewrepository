@@ -1,0 +1,58 @@
+name: Rollback Workflow
+
+on:
+  issues:
+    types: [opened]
+    labels: [rollback]
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para o rollback (dev/hom/prod)'
+        required: true
+        default: 'dev'
+      clusterName:
+        description: 'Nome do Cluster ECS'
+        required: true
+      deploymentType:
+        description: 'Tipo de Deployment (Tradicional ou Onebox Gradual)'
+        required: true
+        default: 'Tradicional'
+      serviceNameOnebox:
+        description: 'Nome do Serviço ECS com sufixo onebox'
+        required: true
+      serviceName:
+        description: 'Nome do Serviço ECS tradicional'
+        required: true
+        
+jobs:
+  rollback:
+    if: github.event.issue.labels.*.name == 'rollback'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Issue Details
+        run: |
+          echo "Issue Title: ${{ github.event.issue.title }}"
+          echo "Rollback Type: Extract from issue body"
+          
+  rollback-via-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Deploy Onebox Gradual
+        if: ${{ github.event.inputs.deploymentType == 'Onebox Gradual' }}
+        run: |
+          echo "Iniciando rollback Onebox Gradual..."
+          # Coloque aqui os comandos para rollback Onebox Gradual
+          echo "Nome do serviço Onebox: ${{ github.event.inputs.serviceNameOnebox }}"
+          # Outros comandos específicos para Onebox Gradual
+
+      - name: Deploy Tradicional
+        if: ${{ github.event.inputs.deploymentType == 'Tradicional' }}
+        run: |
+          echo "Iniciando rollback Tradicional..."
+          # Coloque aqui os comandos para rollback Tradicional
+          echo "Nome do serviço Tradicional: ${{ github.event.inputs.serviceName }}"
+          # Outros comandos específicos para Tradicional
