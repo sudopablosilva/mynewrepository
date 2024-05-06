@@ -1,0 +1,52 @@
+name: rollback
+description: 'O rollback será baseado na última execução com sucesso.'
+title: "Solicitação de rollback"
+labels: [rollback]
+
+body:
+  - type: dropdown
+    id: Environment
+    attributes:
+      label: "Ambiente"
+      description: "Insira o ambiente para o Rollback (dev/hom/prod)"
+      options:
+        - dev
+        - hom
+        - prod
+    validations:
+      required: true
+
+  - type: input
+    id: clusterName
+    attributes:
+      label: "Nome do Cluster ECS"
+      description: "Insira o nome do cluster ECS"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deploymentType
+    attributes:
+      label: "Tipo de Deployment"
+      description: "Escolha o tipo de deployment worker (tradicional ou onebox gradual)"
+      options:
+        - Tradicional
+        - Onebox Gradual
+    validations:
+      required: true
+
+  - type: input
+    id: serviceNameOnebox
+    attributes:
+      label: "Nome do Serviço Onebox"
+      description: "Insira o nome do serviço ECS que tem o sufixo onebox"
+    validations:
+      required: true
+
+  - type: input
+    id: serviceName
+    attributes:
+      label: "Nome do Serviço Tradicional"
+      description: "Insira o nome do serviço ECS tradicional"
+    validations:
+      required: true
