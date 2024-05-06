@@ -1,80 +1,62 @@
-name: Rollback Workflow
+name: "rollback"
+description: 'The rollback will be based on the last successful execution.'
+title: "Request for rollback"
+labels: [rollback]
 
-on:
+'on':
   issues:
     types: 
       - opened
       - labeled
       - unlabeled
 
-  workflow_dispatch:
+  'workflow_dispatch':
     inputs:
-      environment:
-        description: 'Ambiente para o rollback (dev/hom/prod)'
+      'environment':
+        description: 'Environment for the rollback (dev/hom/prod)'
         required: true
         default: 'dev'
-      clusterName:
-        description: 'Nome do Cluster ECS'
+      'clusterName':
+        description: 'Name of the ECS cluster'
         required: true
-      deploymentType:
-        description: 'Tipo de Deployment (Tradicional ou Onebox Gradual)'
+      'deploymentType':
+        description: 'Type of Deployment (Traditional or Onebox Gradual)'
         required: true
-        default: 'Tradicional'
-      serviceNameOnebox:
-        description: 'Nome do Serviço ECS com sufixo onebox'
+        default: 'Traditional'
+      'serviceNameOnebox':
+        description: 'Name of the ECS service with the onebox suffix'
         required: true
-      serviceName:
-        description: 'Nome do Serviço ECS tradicional'
+      'serviceName':
+        description: 'Name of the traditional ECS service'
         required: true
-
+        
 jobs:
-  parse_issue_form:
-    if: contains(github.event.issue.labels.*.name, 'rollback')
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.extract.outputs.environment }}
-      cluster_name: ${{ steps.extract.outputs.cluster_name }}
-      deployment_controller: ${{ steps.extract.outputs.deployment_controller }}
-      service_name_onebox: ${{ steps.extract.outputs.service_name_onebox }}
-      service_name: ${{ steps.extract.outputs.service_name }}
+  'rollback':
+    'if': github.event.issue.labels.*.name == 'rollback'
+    'runs-on': ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Parse Issue Form to JSON
-        id: parse
-        uses: peter-murray/issue-forms-body-parser@v4.1.0
-        with:
-          issue_id: ${{ github.event.issue.number }}
-          separator: '###'
-          label_marker_start: '>>'
-          label_marker_end: '<<'
-
-      - name: Extract Fields
-        id: extract_fields
+      - name: Check Issue Details
         run: |
-          payload=${{ steps.parse.outputs.payload }}
-          echo "Extracted payload: $payload"
-          echo "::set-output name=environment::$(echo '$payload' | jq -r '.environment')"
-          echo "::set-output name=cluster_name::$(echo '$payload' | jq -r '.cluster_name')"
-          echo "::set-output name=deployment_controller::$(echo '$payload' | jq -r '.deployment_controller')"
-          echo "::set-output name=service_name_onebox::$(echo '$payload' | jq -r '.service_name_onebox')"
-          echo "::set-output name=service_name::$(echo '$payload' | jq -r '.service_name')"
+          echo "Issue Title: ${{ github.event.issue.title }}"
+          echo "Rollback Type: Extract from issue body"
 
-      - name: Display Extracted Information
-        run: |
-          echo "Environment: ${{ steps.extract_fields.outputs.environment }}"
-          echo "Cluster Name: ${{ steps.extract_fields.outputs.cluster_name }}"
-          echo "Deployment Controller: ${{ steps.extract_fields.outputs.deployment_controller }}"
-          echo "Service Name Onebox: ${{ steps.extract_fields.outputs.service_name_onebox }}"
-          echo "Service Name: ${{ steps.extract_fields.outputs.service_name }}"
-
-  execute_rollback:
-    needs: parse_issue_form
-    if: ${{ needs.parse_issue_form.outputs.deployment_controller == 'External' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Rollback External Deployment
-        run: |
-          echo "Performing rollback for External Deployment..."
-          echo "Service Name Onebox: ${{ needs.parse_issue_form.outputs.service_name_onebox }}"
+      - name: Convert Form Issue to JSON
+        'runs-on': ubuntu-latest
+        outputs:
+          'payload-parsed': ${{ steps.payload.outputs.json_var }}
+        steps:
+          - name: Run Issue form parser
+            id: parse
+            uses: peter-murray/issue-forms-body-parser@v4.1.0
+            with:
+              issue_id: ${{ github.event.issue.number }}
+              separator: '###'
+              label_marker_start: '>>'
+              label_marker_end: '<<'
+  
+          - name: Set output
+            id: payload
+            run: echo ::set-output name=json_var::'${{ steps.parse.outputs.payload }}'
+  
+          - name: Show output
+            run: echo "${{ toJson(steps.payload.outputs.json_var) }}"
