@@ -41,7 +41,7 @@ jobs:
 
   form-to-json:
       name: Convert Form Issue to JSON
-      runs-on: ${{ vars.RUNNER_K8S_SPOT_LOW }}
+      runs-on: ubuntu-latest
       outputs:
         payload-parsed: ${{ steps.payload.outputs.json_var }}
       steps:
