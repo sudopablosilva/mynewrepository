@@ -34,6 +34,29 @@ jobs:
         run: |
           echo "Issue Title: ${{ github.event.issue.title }}"
           echo "Rollback Type: Extract from issue body"
+
+  form-to-json:
+      name: Convert Form Issue to JSON
+      runs-on: ${{ vars.RUNNER_K8S_SPOT_LOW }}
+      needs: [rollback]
+      outputs:
+        payload-parsed: ${{ steps.payload.outputs.json_var }}
+      steps:
+        - name: Run Issue form parser
+          id: parse
+          uses: peter-murray/issue-forms-body-parser@v2.0.0
+          with:
+            issue_id: ${{ github.event.issue.number }}
+            separator: '###'
+            label_marker_start: '>>'
+            label_marker_end: '<<'
+  
+        - name: Set output
+          id: payload
+          run: echo ::set-output name=json_var::'${{ steps.parse.outputs.payload }}'
+  
+        - name: Show output
+          run: echo "${{ toJson(steps.payload.outputs.json_var) }}"
           
   rollback-via-dispatch:
     runs-on: ubuntu-latest
