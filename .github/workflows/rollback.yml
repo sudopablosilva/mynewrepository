@@ -2,8 +2,12 @@ name: Rollback Workflow
 
 on:
   issues:
-    types: [opened]
-    labels: [rollback]
+    types: 
+      - opened
+      - labeled
+      - unlabeled
+    # labels: [rollback]
+    
 
   workflow_dispatch:
     inputs:
