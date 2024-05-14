@@ -15,7 +15,7 @@ spec:
           values:
           - "cell-1"
       values:
-        cluster: example_cell-1
+        cluster: '{{.name}}'
         cellName: example_cell-1
         serviceName: example_opf
         clusterName: example_cell-1
