@@ -11,7 +11,7 @@ on:
       cells:
         description: 'Células destino do workload'
         required: false
-        default: 'cell-1,cell-2,cell-3'
+        default: 'cell-1'
 env:
   AWS_REGION: us-east-2  # Centralized AWS region
   SERVICE_NAME: openfinance
