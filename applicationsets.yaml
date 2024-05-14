@@ -7,9 +7,15 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  - list:
-      elements:
-      - cluster: example_cell-1
+  - clusters:
+      selector:
+        matchExpressions:
+        - key: cluster
+          operator: In
+          values:
+          - "cell-1"
+      values:
+        cluster: example_cell-1
         cellName: example_cell-1
         serviceName: example_opf
         clusterName: example_cell-1
