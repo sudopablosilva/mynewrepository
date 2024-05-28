@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir -p src
           cat <<EOF > src/invoke-ecs.ts
-          const { ECSClient, ListServicesCommand, ListTaskSetsCommand } = require("@aws-sdk/client-ecs");
+          import { ECSClient, ListServicesCommand, ListTaskSetsCommand } from "@aws-sdk/client-ecs";
           
           const ECS_CLUSTER_NAME = 'meucluster';
           const ECS_SERVICE_NAME = 'meuservico';
