@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      - run: npm install @aws-sdk/client-ecs typescript ts-node
+      - run: npm install @aws-sdk/client-ecs typescript ts-node @types/node
 
       - uses: actions/github-script@v7
         id: set-result
@@ -32,6 +32,24 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Create TypeScript configuration
+        run: |
+          cat <<EOF > tsconfig.json
+          {
+            "compilerOptions": {
+              "target": "ES2020",
+              "module": "commonjs",
+              "strict": true,
+              "esModuleInterop": true,
+              "skipLibCheck": true,
+              "forceConsistentCasingInFileNames": true,
+              "outDir": "./dist"
+            },
+            "include": ["src/**/*.ts"],
+            "exclude": ["node_modules"]
+          }
+          EOF
 
       - name: Create TypeScript script
         run: |
