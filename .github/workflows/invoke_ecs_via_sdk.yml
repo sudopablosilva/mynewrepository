@@ -49,7 +49,7 @@ jobs:
             }
             
             async function listTaskSets(clusterName, serviceName) {
-                const { taskSets } = await ecs.listTaskSets({ cluster: clusterName, service: serviceName }).promise(); // Call promise() method
+                const { taskSets } = await ecs.listTaskSets({ cluster: clusterName, service: serviceName }).promise();
                 return taskSets;
             }
             
@@ -66,4 +66,3 @@ jobs:
             }
             
             main();
-
