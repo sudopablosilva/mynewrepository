@@ -67,11 +67,17 @@ jobs:
               return response.serviceArns || [];
             };
             
-            const getTaskSets = async () => {
-              const command = new ListTaskSetsCommand({
-                cluster: ECS_CLUSTER_NAME,
-                service: ECS_SERVICE_NAME,
-              });
+              const getTaskSets = async (serviceArn) => {
+                const command = new ListTaskSetsCommand({
+                  cluster: ECS_CLUSTER_NAME,
+                  service: serviceArn,
+                });
+              
+                const response = await client.send(command);
+                const taskSetArns = response.taskSets?.map((taskSet) => taskSet.taskSetArn) || [];
+                return taskSetArns;
+              };
+
             
               const response = await client.send(command);
               return response.taskSets || [];
