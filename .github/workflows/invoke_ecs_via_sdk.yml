@@ -42,7 +42,6 @@ jobs:
             const QUERY_ONEBOX_FILTER_STRING = "ico";
             
             const { ECSClient, ListServicesCommand, ListTaskSetsCommand } = require("@aws-sdk/client-ecs");
-            const { env } = require('process');
             
             const client = new ECSClient({ region: 'us-east-2' });
             
@@ -91,3 +90,4 @@ jobs:
             
             const IS_WORKER_GRADUAL = TASKSETS.length === 0;
             console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
+      
