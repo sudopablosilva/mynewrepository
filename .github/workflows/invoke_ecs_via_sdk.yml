@@ -37,6 +37,7 @@ jobs:
         with:
           script: |
             const { ECS } = require("@aws-sdk/client-ecs");
+            
             const ecs = new ECS({ region: 'us-east-2' });
             
             const ECS_CLUSTER_NAME = 'meucluster';
@@ -44,7 +45,8 @@ jobs:
             const QUERY_TIER_FILTER_STRING = "ico";
             const QUERY_ONEBOX_FILTER_STRING = "ico";
                         
-            import { ECSClient, ListServicesCommand, ListTaskSetsCommand } from '@aws-sdk/client-ecs';
+            const { ECSClient, ListServicesCommand, ListTaskSetsCommand } = require("@aws-sdk/client-ecs");
+
             import { env } from 'process';
             
             const client = new ECSClient({ region: 'us-east-2' });
