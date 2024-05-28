@@ -115,5 +115,8 @@ jobs:
           main().catch(console.error);
           EOF
 
-      - name: Run TypeScript script
-        run: npx ts-node src/invoke-ecs.ts
+      - uses: flydiverny/github-typescript@v1
+        env:
+          INPUT_SOMETHING: "Nice demo run"
+        with:
+          script-file: src/invoke-ecs.ts
