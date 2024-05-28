@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      - run: npm ci
+      # - run: npm ci
       # or one-off:
       - run: npm install @aws-sdk/client-ecs
 
