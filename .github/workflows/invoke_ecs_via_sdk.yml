@@ -10,6 +10,13 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      # or one-off:
+      - run: npm install @aws-sdk/client-ecs
+
       - uses: actions/github-script@v7
         id: set-result
         with:
