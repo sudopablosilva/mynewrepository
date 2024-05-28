@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      - run: npm install @aws-sdk/client-ecs typescript ts-node @types/node
+      - run: npm install -g @aws-sdk/client-ecs typescript ts-node @types/node
 
       - uses: actions/github-script@v7
         id: set-result
