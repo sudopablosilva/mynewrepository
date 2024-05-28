@@ -43,26 +43,54 @@ jobs:
             const ECS_SERVICE_NAME = 'meuservico';
             const QUERY_TIER_FILTER_STRING = "ico";
             const QUERY_ONEBOX_FILTER_STRING = "ico";
+                        
+            import { ECSClient, ListServicesCommand, ListTaskSetsCommand } from '@aws-sdk/client-ecs';
+            import { env } from 'process';
             
-            async function listServices(clusterName, serviceName, filterString) {
-                return serviceArns.filter(arn => arn.includes(serviceName) && arn.includes(filterString));
-            }
+            const client = new ECSClient({ region: 'us-east-2' });
+                        
+            const getWorkerServices = async () => {
+              const command = new ListServicesCommand({
+                cluster: ECS_CLUSTER_NAME,
+                queryString: `serviceArns[?contains(@, \`${ECS_SERVICE_NAME}\`) && contains(@, \`${QUERY_TIER_FILTER_STRING}\`) && !contains(@, \`onebox\`)]`,
+              });
             
-            async function listTaskSets(clusterName, serviceName) {
-                const { taskSets } = await ecs.listTaskSets({ cluster: clusterName, service: serviceName }).promise();
-                return taskSets;
-            }
+              const response = await client.send(command);
+              const serviceArns = response.serviceArns?.map((arn) => arn.split('/').pop()) || [];
+              return serviceArns[0] || '';
+            };
             
-            async function main() {
-                const workerServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_TIER_FILTER_STRING);
-                const oneboxServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_ONEBOX_FILTER_STRING);
+            const getOneboxServices = async () => {
+              const command = new ListServicesCommand({
+                cluster: ECS_CLUSTER_NAME,
+                queryString: `serviceArns[?contains(@, \`${ECS_SERVICE_NAME}\`) && contains(@, \`${QUERY_ONEBOX_FILTER_STRING}\`)]`,
+              });
             
-                const ECS_SERVICES_NAMES = workerServices.map(arn => arn.split("/")[1]);
+              const response = await client.send(command);
+              return response.serviceArns || [];
+            };
             
-                for (const serviceName of ECS_SERVICES_NAMES) {
-                    const taskSets = await listTaskSets(ECS_CLUSTER_NAME, serviceName);
-                    console.log(`Service ${serviceName} has ${taskSets.length} task sets`);
-                }
-            }
+            const getTaskSets = async () => {
+              const command = new ListTaskSetsCommand({
+                cluster: ECS_CLUSTER_NAME,
+                service: ECS_SERVICE_NAME,
+              });
+            
+              const response = await client.send(command);
+              return response.taskSets || [];
+            };
+            
+            const main = async () => {
+              const ECS_SERVICES_NAMES = await getWorkerServices();
+              const ECS_ONEBOX_NAMES = await getOneboxServices();
+            
+              console.log(`ECS_SERVICES_NAMES=${ECS_SERVICES_NAMES}`);
+              console.log(`ECS_ONEBOX_NAMES=${ECS_ONEBOX_NAMES.join(',')}`);
+            
+              const TASKSETS = await getTaskSets();
+              const IS_WORKER_GRADUAL = TASKSETS.length > 0;
+              console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
+            };
             
             main();
+
