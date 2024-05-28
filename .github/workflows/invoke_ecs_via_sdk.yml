@@ -36,10 +36,6 @@ jobs:
         id: invoke-ecs
         with:
           script: |
-            const { ECS } = require("@aws-sdk/client-ecs");
-            
-            const ecs = new ECS({ region: 'us-east-2' });
-            
             const ECS_CLUSTER_NAME = 'meucluster';
             const ECS_SERVICE_NAME = 'meuservico';
             const QUERY_TIER_FILTER_STRING = "ico";
