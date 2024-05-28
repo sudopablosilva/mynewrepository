@@ -54,7 +54,7 @@ jobs:
             
               const response = await client.send(command);
               const serviceArns = response.serviceArns?.map((arn) => arn.split('/').pop()) || [];
-              return serviceArns[0] || '';
+              return serviceArns;
             };
             
             const getOneboxServices = async () => {
@@ -66,13 +66,28 @@ jobs:
               const response = await client.send(command);
               return response.serviceArns || [];
             };
-                      
-              const ECS_SERVICES_NAMES = await getWorkerServices();
-              const ECS_ONEBOX_NAMES = await getOneboxServices();
             
-              console.log(`ECS_SERVICES_NAMES=${ECS_SERVICES_NAMES}`);
-              console.log(`ECS_ONEBOX_NAMES=${ECS_ONEBOX_NAMES.join(',')}`);
+            const getTaskSets = async (serviceArn) => {
+              const command = new ListTaskSetsCommand({
+                cluster: ECS_CLUSTER_NAME,
+                service: serviceArn,
+              });
             
-              const TASKSETS = [];
-              const IS_WORKER_GRADUAL = TASKSETS.length > 0;
-              console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
+              const response = await client.send(command);
+              return response.taskSets || [];
+            };
+            
+            const ECS_SERVICES_NAMES = await getWorkerServices();
+            const ECS_ONEBOX_NAMES = await getOneboxServices();
+            
+            console.log(`ECS_SERVICES_NAMES=${ECS_SERVICES_NAMES}`);
+            console.log(`ECS_ONEBOX_NAMES=${ECS_ONEBOX_NAMES.join(',')}`);
+            
+            const TASKSETS = [];
+            for (const serviceArn of ECS_SERVICES_NAMES) {
+              const taskSets = await getTaskSets(serviceArn);
+              TASKSETS.push(...taskSets);
+            }
+            
+            const IS_WORKER_GRADUAL = TASKSETS.length === 0;
+            console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
