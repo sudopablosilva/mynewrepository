@@ -36,38 +36,34 @@ jobs:
         id: invoke-ecs
         with:
           script: |
-                const { ECS } = require("@aws-sdk/client-ecs");
-                const ecs = new ECS({ region: 'us-east-2' });
-                
-                const ECS_CLUSTER_NAME = 'meucluster';
-                const ECS_SERVICE_NAME = 'meuservico';
-                const QUERY_TIER_FILTER_STRING = "ico";
-                const QUERY_ONEBOX_FILTER_STRING = "ico";
-                
-                async function listServices(clusterName, serviceName, filterString) {
-                    const { serviceArns } = await ecs.listServices({ cluster: clusterName }).promise();
-                    return serviceArns.filter(arn => arn.includes(serviceName) && arn.includes(filterString));
+            const { ECS } = require("@aws-sdk/client-ecs");
+            const ecs = new ECS({ region: 'us-east-2' });
+            
+            const ECS_CLUSTER_NAME = 'meucluster';
+            const ECS_SERVICE_NAME = 'meuservico';
+            const QUERY_TIER_FILTER_STRING = "ico";
+            const QUERY_ONEBOX_FILTER_STRING = "ico";
+            
+            async function listServices(clusterName, serviceName, filterString) {
+                return serviceArns.filter(arn => arn.includes(serviceName) && arn.includes(filterString));
+            }
+            
+            async function listTaskSets(clusterName, serviceName) {
+                const { taskSets } = await ecs.listTaskSets({ cluster: clusterName, service: serviceName }).promise(); // Call promise() method
+                return taskSets;
+            }
+            
+            async function main() {
+                const workerServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_TIER_FILTER_STRING);
+                const oneboxServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_ONEBOX_FILTER_STRING);
+            
+                const ECS_SERVICES_NAMES = workerServices.map(arn => arn.split("/")[1]);
+            
+                for (const serviceName of ECS_SERVICES_NAMES) {
+                    const taskSets = await listTaskSets(ECS_CLUSTER_NAME, serviceName);
+                    console.log(`Service ${serviceName} has ${taskSets.length} task sets`);
                 }
-                
-                async function listTaskSets(clusterName, serviceName) {
-                    const { taskSets } = await ecs.listTaskSets({ cluster: clusterName, service: serviceName }).promise();
-                    return taskSets;
-                }
-                
-                async function main() {
-                    const workerServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_TIER_FILTER_STRING);
-                    const oneboxServices = await listServices(ECS_CLUSTER_NAME, ECS_SERVICE_NAME, QUERY_ONEBOX_FILTER_STRING);
-                
-                    const ECS_SERVICES_NAMES = workerServices.map(arn => arn.split("/").pop()).join("\n");
-                    const ECS_ONEBOX_NAMES = oneboxServices.map(arn => arn.split("/").pop()).join("\n");
-                
-                    console.log(`ECS_SERVICES_NAMES=${ECS_SERVICES_NAMES}`);
-                    console.log(`ECS_ONEBOX_NAMES=${ECS_ONEBOX_NAMES}`);
-                
-                    const taskSets = await listTaskSets(ECS_CLUSTER_NAME, ECS_SERVICE_NAME);
-                    const IS_WORKER_GRADUAL = taskSets.length > 0 ? "true" : "false";
-                
-                    console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
-                }
-                
-                main().catch(console.error);
+            }
+            
+            main();
+
