@@ -13,9 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      # - run: npm ci
-      # or one-off:
-      - run: npm install @aws-sdk/client-ecs
+      - run: npm install @aws-sdk/client-ecs typescript ts-node
 
       - uses: actions/github-script@v7
         id: set-result
@@ -31,63 +29,73 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-          
-      - uses: actions/github-script@v7
-        id: invoke-ecs
-        with:
-          script: |
-            const ECS_CLUSTER_NAME = 'meucluster';
-            const ECS_SERVICE_NAME = 'meuservico';
-            const QUERY_TIER_FILTER_STRING = "ico";
-            const QUERY_ONEBOX_FILTER_STRING = "ico";
-            
-            const { ECSClient, ListServicesCommand, ListTaskSetsCommand } = require("@aws-sdk/client-ecs");
-            
-            const client = new ECSClient({ region: 'us-east-2' });
-            
-            const getWorkerServices = async () => {
-              const command = new ListServicesCommand({
-                cluster: ECS_CLUSTER_NAME,
-                queryString: `serviceArns[?contains(@, \`${ECS_SERVICE_NAME}\`) && contains(@, \`${QUERY_TIER_FILTER_STRING}\`) && !contains(@, \`onebox\`)]`,
-              });
-            
-              const response = await client.send(command);
-              const serviceArns = response.serviceArns?.map((arn) => arn.split('/').pop()) || [];
-              return serviceArns;
-            };
-            
-            const getOneboxServices = async () => {
-              const command = new ListServicesCommand({
-                cluster: ECS_CLUSTER_NAME,
-                queryString: `serviceArns[?contains(@, \`${ECS_SERVICE_NAME}\`) && contains(@, \`${QUERY_ONEBOX_FILTER_STRING}\`)]`,
-              });
-            
-              const response = await client.send(command);
-              return response.serviceArns || [];
-            };
-            
-            const getTaskSets = async (serviceArn) => {
-              const command = new ListTaskSetsCommand({
-                cluster: ECS_CLUSTER_NAME,
-                service: serviceArn,
-              });
-            
-              const response = await client.send(command);
-              return response.taskSets || [];
-            };
-            
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create TypeScript script
+        run: |
+          mkdir -p src
+          cat <<EOF > src/invoke-ecs.ts
+          import { ECSClient, ListServicesCommand, ListTaskSetsCommand } from "@aws-sdk/client-ecs";
+
+          const ECS_CLUSTER_NAME = 'meucluster';
+          const ECS_SERVICE_NAME = 'meuservico';
+          const QUERY_TIER_FILTER_STRING = "ico";
+          const QUERY_ONEBOX_FILTER_STRING = "ico";
+
+          const client = new ECSClient({ region: 'us-east-2' });
+
+          const getWorkerServices = async () => {
+            const command = new ListServicesCommand({
+              cluster: ECS_CLUSTER_NAME,
+              queryString: \`serviceArns[?contains(@, \${ECS_SERVICE_NAME}) && contains(@, \${QUERY_TIER_FILTER_STRING}) && !contains(@, "onebox")]\`,
+            });
+
+            const response = await client.send(command);
+            const serviceArns = response.serviceArns?.map((arn: string) => arn.split('/').pop()) || [];
+            return serviceArns;
+          };
+
+          const getOneboxServices = async () => {
+            const command = new ListServicesCommand({
+              cluster: ECS_CLUSTER_NAME,
+              queryString: \`serviceArns[?contains(@, \${ECS_SERVICE_NAME}) && contains(@, \${QUERY_ONEBOX_FILTER_STRING})]\`,
+            });
+
+            const response = await client.send(command);
+            return response.serviceArns || [];
+          };
+
+          const getTaskSets = async (serviceArn: string) => {
+            const command = new ListTaskSetsCommand({
+              cluster: ECS_CLUSTER_NAME,
+              service: serviceArn,
+            });
+
+            const response = await client.send(command);
+            return response.taskSets || [];
+          };
+
+          const main = async () => {
             const ECS_SERVICES_NAMES = await getWorkerServices();
             const ECS_ONEBOX_NAMES = await getOneboxServices();
-            
-            console.log(`ECS_SERVICES_NAMES=${ECS_SERVICES_NAMES}`);
-            console.log(`ECS_ONEBOX_NAMES=${ECS_ONEBOX_NAMES.join(',')}`);
-            
-            const TASKSETS = [];
+
+            console.log(\`ECS_SERVICES_NAMES=\${ECS_SERVICES_NAMES}\`);
+            console.log(\`ECS_ONEBOX_NAMES=\${ECS_ONEBOX_NAMES.join(',')}\`);
+
+            const TASKSETS: any[] = [];
             for (const serviceArn of ECS_SERVICES_NAMES) {
               const taskSets = await getTaskSets(serviceArn);
               TASKSETS.push(...taskSets);
             }
-            
+
             const IS_WORKER_GRADUAL = TASKSETS.length === 0;
-            console.log(`IS_WORKER_GRADUAL=${IS_WORKER_GRADUAL}`);
-      
+            console.log(\`IS_WORKER_GRADUAL=\${IS_WORKER_GRADUAL}\`);
+          };
+
+          main().catch(console.error);
+          EOF
+
+      - name: Run TypeScript script
+        run: npx ts-node src/invoke-ecs.ts
