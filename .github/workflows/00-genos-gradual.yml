@@ -1,10 +1,32 @@
 name: "2 - [DEV] Build & Deploy Gradual"
-
+    
 on:
   pull_request:
     types: closed
     branches: develop
-  workflow_dispatch:
+  workflow_call:
+
+# SECRETS 
+    secrets:
+      APPLICATION_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
+      ADU:
+        required: true
+      ADPEP:
+        required: true
+      APU:
+        required: true
+# OUTPUTS
+    outputs:
+      new-tag:
+        description: "Nome da nova versao que será gerada."
+        value: ${{ jobs.prepare-package.outputs.new-tag }}
+      previous-tag:
+        description: "Nome da versão atual."
+        value: ${{ jobs.prepare-package.outputs.previous-tag }}
+# INPUTS
     inputs:
       imageTag:
         description: 'Versão da tag da imagem docker do workload'
@@ -199,26 +221,7 @@ permissions:
   checks: write
   actions: write
   packages: read
-  
-# secrets:
-#   APPLICATION_ID:
-#     required: true
-#   APP_PRIVATE_KEY:
-#     required: true
-#   ADU:
-#     required: true
-#   ADPEP:
-#     required: true
-#   APU:
-#     required: true
-    
-# outputs:
-#   new-tag:
-#     description: "Nome da nova versao que será gerada."
-#     value: ${{ jobs.prepare-package.outputs.new-tag }}
-#   previous-tag:
-#     description: "Nome da versão atual."
-#     value: ${{ jobs.prepare-package.outputs.previous-tag }}
+
 
 env:
   AWS_REGION: sa-east-1  # Centralized AWS region
