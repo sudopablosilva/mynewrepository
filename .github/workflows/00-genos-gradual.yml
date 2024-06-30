@@ -1,0 +1,921 @@
+name: "2 - [DEV] Build & Deploy"
+
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+  pull-requests: write
+  checks: write
+  actions: write
+  packages: read
+
+on:
+  pull_request:
+    types: closed
+    branches: develop
+  workflow_dispatch:
+    inputs:
+      imageTag:
+        description: 'Versão da tag da imagem docker do workload'
+        required: false
+        default: '0.1'
+      cells:
+        description: 'Células destino do workload'
+        required: false
+        default: 'cell-1'
+      deploy-aws-dev-account:
+        required: false
+        type: string
+      deploy-aws-hom-account:
+        required: false
+        type: string
+      deploy-aws-prod-account:
+        required: false
+        type: string
+      deploy-aws-eks-aws-region:
+        required: false
+        type: string
+        default: sa-east-1
+      deploy-aws-eks-custom-role:
+        required: false
+        type: string
+      deploy-k8s-infra-path:
+        required: false
+        type: string
+        default: infra
+      environment:
+        required: true
+        type: string
+        default: dev
+      deploy-k8s-version:
+        required: false
+        type: string
+        default: latest
+      deploy-k8s-dev-cluster:
+        required: false
+        type: string
+      deploy-k8s-hom-cluster:
+        required: false
+        type: string
+      deploy-k8s-prod-cluster:
+        required: false
+        type: string
+      deploy-k8s-dev-namespace:
+        required: false
+        type: string
+      deploy-k8s-hom-namespace:
+        required: false
+        type: string
+      deploy-k8s-prod-namespace:
+        required: false
+        type: string
+      deploy-k8s-dev-strategy:
+        required: false
+        type: string
+      deploy-k8s-hom-strategy:
+        required: false
+        type: string
+      deploy-k8s-prod-strategy:
+        required: false
+        type: string
+      deploy-k8s-dev-percentage:
+        required: false
+        type: number
+      deploy-k8s-hom-percentage:
+        required: false
+        type: string
+      deploy-k8s-prod-percentage:
+        required: false
+        type: string
+      deploy-k8s-dev-wait-time:
+        required: false
+        type: string
+        default: "0"
+      deploy-k8s-hom-wait-time:
+        required: false
+        type: string
+        default: "0"
+      deploy-k8s-prod-wait-time:
+        required: false
+        type: string
+        default: "0"
+      deploy-k8s-dev-split-method:
+        required: false
+        type: string
+        default: "pod"
+      deploy-k8s-hom-split-method:
+        required: false
+        type: string
+        default: "pod"
+      deploy-k8s-prod-split-method:
+        required: false
+        type: string
+        default: "pod"
+      deploy-k8s-dev-route-method:
+        required: false
+        type: string
+        default: "service"
+      deploy-k8s-hom-route-method:
+        required: false
+        type: string
+        default: "service"
+      deploy-k8s-prod-route-method:
+        required: false
+        type: string
+        default: "service"
+      deploy-k8s-dev-external-image:
+        required: false
+        type: boolean
+        default: false
+      deploy-k8s-hom-external-image:
+        required: false
+        type: boolean
+        default: false
+      deploy-k8s-prod-external-image:
+        required: false
+        type: boolean
+        default: false
+      deploy-aws-dev-eks-compute-platform:
+        required: false
+        type: string
+        default: "EC2"
+      deploy-aws-hom-eks-compute-platform:
+        required: false
+        type: string
+        default: "EC2"
+      deploy-aws-prod-eks-compute-platform:
+        required: false
+        type: string
+        default: "EC2"
+      release-branch:
+        required: false
+        type: string
+        default: "develop,release/*,hotfix/*"
+      runs-on:
+        required: false
+        type: string
+        default: ${{ vars.RUNNER_K8S_OD_SMALL }}
+      tag-branch-prefix:
+        required: false
+        type: string
+        default: release/
+      tag-branch:
+        required: false
+        type: string
+      deploy-type:
+        required: false
+        type: string
+        default: deploy
+      custom-branch:
+        required: false
+        type: string
+        default: ""
+      versao:
+        required: false
+        type: string
+        default: ""
+      rollback:
+        required: false
+        type: boolean
+        default: false
+      change-number:
+        required: false
+        type: string
+      iupipes-config-path:
+        required: false
+        type: string
+        default: ".iupipes.yml"
+      deploy-k8s-destroy:
+        required: false
+        type: boolean
+        default: false
+      deploy-k8s-helm-version:
+        required: false
+        type: string
+        default: "v3.9.4"
+      chart-path:
+        required: false
+        type: string
+        default: "chart"
+      env-tmp:
+        required: false
+        type: string
+    secrets:
+      APPLICATION_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
+      ADU:
+        required: true
+      ADPEP:
+        required: true
+      APU:
+        required: true
+        
+    outputs:
+      new-tag:
+        description: "Nome da nova versao que será gerada."
+        value: ${{ jobs.prepare-package.outputs.new-tag }}
+      previous-tag:
+        description: "Nome da versão atual."
+        value: ${{ jobs.prepare-package.outputs.previous-tag }}
+
+env:
+  AWS_REGION: sa-east-1  # Centralized AWS region
+  SERVICE_NAME: openfinance
+  TEMPLATE_PATH: applicationsets.yaml
+  CELLS: ${{ inputs.cells }}
+  WORKLOAD_TYPES: 'onebox,normal'
+  TIME_BETWEEN_CANARY_STEPS_IN_SECONDS: 60s
+  MAX_BAKE_TIME_SECONDS: 120
+
+jobs:
+  config-parse:
+    name: Parser config file
+    runs-on: ${{ vars.RUNNER_K8S_SPOT_LOW }}
+    outputs:
+      full-output: ${{ toJson(steps.action_parse.outputs) }}
+    steps:
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout source
+        uses: itau-corp/itau-up2-reusable-workflows-cd-k8s/.github/actions/checkout_branch@v1
+        with:
+          rollback: ${{ inputs.rollback }}
+          deploy-type: ${{ inputs.deploy-type }}
+          environment: ${{ inputs.environment }}
+          versao: ${{ inputs.versao }}
+
+      - name: Checkout GitHub Action
+        uses: actions/checkout@v3
+        with:
+          repository: itau-corp/itau-up2-action-config-parse
+          ref: "refs/heads/v1"
+          path: .github/actions/itau-up2-action-config-parse
+          token: ${{ steps.get_workflow_token.outputs.token }}
+
+      - name: Config parser
+        id: action_parse
+        uses: ./.github/actions/itau-up2-action-config-parse
+        with:
+          configPath: ${{ inputs.iupipes-config-path }}
+          reusableInputs: "${{ toJSON(inputs) }}"
+  prepare-package:
+    name: Prepare
+    runs-on: ${{ vars.RUNNER_K8S_SPOT_LOW }}
+    needs: config-parse
+    outputs:
+      new-tag: ${{ steps.tag_version.outputs.new_tag }}
+      previous-tag: ${{ steps.tag_version.outputs.previous_tag }}
+      aws: ${{ steps.aws_connection.outputs.aws }}
+      new-image: ${{ steps.container_info.outputs.new_image }}
+      image-registry: ${{ steps.container_info.outputs.image_registry }}
+      artifact-docker-url: ${{ steps.login_info.outputs.artifact_docker_url }}
+      container-version: ${{ steps.container_info.outputs.container_version }}
+    steps:
+      - name: Get Parameters
+        id: parse_info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const outputs = JSON.parse(${{ toJson(needs.config-parse.outputs.full-output) }})
+            const environment = '${{ inputs.environment }}'
+            const splitKey = `deploy-k8s-${environment}-`
+
+            Object.keys(outputs).forEach(function(key) {
+              const value = outputs[key].trim();
+              console.log(`${key} = ${value}`);
+              core.setOutput(key, value)
+              if (key.includes(`deploy-k8s-${environment}`)) {
+                  const keyValue =  key.split(splitKey).pop();
+                  console.log(`* ${keyValue} = ${value}`);
+                  core.setOutput(keyValue, value)
+              }
+            });
+
+            console.log('Os parâmetros que aparecem com asterisco(*) na frente serão os parametros selecionados de acordo com o environment.')
+
+      - uses: jfrog/setup-jfrog-cli@v3
+
+      - name: Checkout source
+        # uses: itau-corp/itau-up2-reusable-workflows-cd-k8s/.github/actions/checkout_branch@v1
+        uses: itau-corp/itau-up2-reusable-workflows-cd-k8s/.github/actions/checkout_branch@fix/checkout_hom
+        with:
+          rollback: ${{ inputs.rollback }}
+          deploy-type: ${{ inputs.deploy-type }}
+          environment: ${{ inputs.environment }}
+          versao: ${{ inputs.versao }}
+          
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Bump version
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          dry_run: true
+          github_token: ${{ steps.get_workflow_token.outputs.token }}
+          release_branches: ${{ inputs.release-branch }}
+
+      - name: Check AWS Connection
+        id: aws_connection
+        run: |
+          if [[ ${{ steps.parse_info.outputs.deploy-aws-dev-account }} != '' ||
+                ${{ steps.parse_info.outputs.deploy-aws-hom-account }} != '' ||
+                ${{ steps.parse_info.outputs.deploy-aws-prod-account }} != '' ]]; then
+            echo "aws=true" >> $GITHUB_OUTPUT
+          else
+            echo "aws=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Setup Artifactory
+        run: |
+          jfrog c add --url=${{ secrets.APU }} --user=${{ secrets.ADU }} --password=${{ secrets.ADPEP }} --interactive=false
+      
+      - name: Parse Artifactory URL
+        id: login_info
+        run: |
+          export ARTIFACTORY_AWS_URL_DOCKER=$(echo ${{ secrets.APU }} | cut -c 9- )
+          echo "artifact_docker_url=${ARTIFACTORY_AWS_URL_DOCKER}" >> $GITHUB_OUTPUT
+
+      - name: Artifact Info
+        id: artifact_info
+        if: contains(steps.parse_info.outputs.external-image, 'false')
+        run: |
+          if [[
+            "${{ inputs.environment }}" != "dev" &&
+            "${{ inputs.environment }}" != "hom" &&
+            "${{ inputs.environment }}" != "prod" &&
+            "${{ inputs.environment }}" != "hotfix"
+          ]]; then
+            echo "::error::environment deve ser \"dev\", \"hom\", \"prod\" ou \"hotfix\"."
+            echo "::error::Valor environment: \"${{ inputs.environment }}\""
+            exit 1
+          fi
+          if [[ "${{ github.head_ref }}" == "${{ inputs.tag-branch-prefix }}"* ]]; then
+            export tag_branch=${{ inputs.tag-branch }}
+            export artifact_version=$(echo ${tag_branch/"${{ inputs.tag-branch-prefix }}"/})
+          else
+            export artifact_version="${{ steps.tag_version.outputs.previous_tag }}"
+          fi
+          if [[ "${{ inputs.environment }}" == "dev" || "${{ inputs.environment }}" == "hotfix" ]]; then
+            export artifact_version="${{ steps.tag_version.outputs.new_tag }}"
+          fi
+          if [[ "${{ inputs.environment }}" == "dev" ]]; then
+            export release_name="development"
+          elif [[ "${{ inputs.environment }}" == "hom" ]]; then
+            export release_name="homologation"
+          elif [[ "${{ inputs.environment }}" == "prod" ]]; then
+            export release_name="production"
+          elif [[ "${{ inputs.environment }}" == "hotfix" ]]; then
+            export release_name="hotfix"
+          else
+            echo "::error::environment nao mapeado com release-name."
+            exit 1
+          fi
+          if [[ '${{ inputs.versao }}' != '' ]]; then
+            export artifact_version="${{ inputs.versao }}"
+          fi
+          echo "artifact-version=${artifact_version}" >> $GITHUB_OUTPUT
+          echo "release-name=${release_name}" >> $GITHUB_OUTPUT
+          echo "::notice title=Versao::${artifact_version}"
+          echo $artifact_version
+
+      - name: Container Info
+        id: container_info
+        if: contains(steps.parse_info.outputs.external-image, 'false')
+        run: |
+          export ARTIFACT_LENGHT=$(jfrog rt s itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker/itau-corp-${{ steps.parse_info.outputs.itau-repo-name }}/${{ steps.artifact_info.outputs.artifact-version }}*/manifest.json --props="build.name=${GITHUB_REPOSITORY/"$GITHUB_REPOSITORY_OWNER/"/};release-name=${{ steps.artifact_info.outputs.release-name }};release-version=${{ steps.artifact_info.outputs.artifact-version }}" --sort-order=desc --sort-by=created | jq length)
+          if [ $ARTIFACT_LENGHT == 0 ]; then
+            echo 'Artifact itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker/itau-corp-${{ steps.parse_info.outputs.itau-repo-name }} not found.'
+            exit 1
+          else
+            export CONTAINER_VERSION=$(jfrog rt s itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker/itau-corp-${{ steps.parse_info.outputs.itau-repo-name }}/${{ steps.artifact_info.outputs.artifact-version }}*/manifest.json --props="build.name=${GITHUB_REPOSITORY/"$GITHUB_REPOSITORY_OWNER/"/};release-name=${{ steps.artifact_info.outputs.release-name }};release-version=${{ steps.artifact_info.outputs.artifact-version }}" --sort-order=desc --sort-by=created | jq -r '.[0].props."docker.manifest" | .[0]')
+            echo $CONTAINER_VERSION
+            export "IMAGE_REGISTRY=$(echo itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker.${{ steps.login_info.outputs.artifact_docker_url }}itau-corp-${{ steps.parse_info.outputs.itau-repo-name }})"
+            export "NEW_IMAGE=$(echo ${IMAGE_REGISTRY}:${CONTAINER_VERSION})"
+            echo "new_image=${NEW_IMAGE}" >> $GITHUB_OUTPUT
+            echo "image_registry=${IMAGE_REGISTRY}" >> $GITHUB_OUTPUT
+            echo "container_version=${CONTAINER_VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+  create-change:
+    needs:
+      - config-parse
+      - prepare-package
+    if: |
+        ( !inputs.rollback ) &&
+        inputs.deploy-type == 'deploy' &&
+        inputs.environment == 'prod'
+    uses: itau-corp/itau-up2-nested-reusable-change-management/.github/workflows/create.yml@v1
+    with:
+      pipeline-type: 'aplicacoes'
+    secrets: inherit
+
+  validate-change:
+    runs-on: ${{ inputs.runs-on }}
+    needs:
+      - config-parse
+      - prepare-package
+    if: |
+        inputs.environment == 'prod' &&
+        (
+          inputs.deploy-type == 'promote' ||
+          inputs.deploy-type == 'reject' ||
+          inputs.rollback
+        )
+    steps:
+      - name: Validate Rollback/Reject
+        uses: itau-corp/itau-up2-nested-reusable-change-management/.github/actions/rollback@v1
+        if: |
+          inputs.rollback ||
+          inputs.deploy-type == 'reject'
+        with:
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          GOVCLOUDPUB_PROD_SNOW: ${{ secrets.GOVCLOUDPUB_PROD_SNOW }}
+          GOVCLOUDPUB_PROD_CLIENT_ID: ${{ secrets.GOVCLOUDPUB_PROD_CLIENT_ID }}
+          GOVCLOUDPUB_PROD_SECRET_ID: ${{ secrets.GOVCLOUDPUB_PROD_SECRET_ID }}
+          GOVCLOUDPUB_PROD_STS_HOST: ${{ vars.GOVCLOUDPUB_PROD_STS_HOST }}
+          GOVCLOUDPUB_PROD_APIGATEWAY_HOST: ${{ vars.GOVCLOUDPUB_PROD_APIGATEWAY_HOST }}
+
+      - name: Validate Promote
+        if: inputs.deploy-type == 'promote'
+        uses: itau-corp/itau-up2-nested-reusable-change-management/.github/actions/schedule@v1
+        with:
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          GOVCLOUDPUB_PROD_SNOW: ${{ secrets.GOVCLOUDPUB_PROD_SNOW }}
+          GOVCLOUDPUB_PROD_CLIENT_ID: ${{ secrets.GOVCLOUDPUB_PROD_CLIENT_ID }}
+          GOVCLOUDPUB_PROD_SECRET_ID: ${{ secrets.GOVCLOUDPUB_PROD_SECRET_ID }}
+          GOVCLOUDPUB_PROD_STS_HOST: ${{ vars.GOVCLOUDPUB_PROD_STS_HOST }}
+          GOVCLOUDPUB_PROD_APIGATEWAY_HOST: ${{ vars.GOVCLOUDPUB_PROD_APIGATEWAY_HOST }}
+
+  K8SDeployment:
+    environment: ${{ inputs.env-tmp == 'destroy' && 'agendamento' || inputs.environment }}
+    name: K8SDeployment
+    runs-on: ${{ inputs.runs-on }}
+    if: |
+      !cancelled() &&
+      (
+        needs.prepare-package.result == 'success' &&
+        (
+          inputs.environment != 'prod' ||
+          (
+            inputs.environment == 'prod' &&
+            (
+              needs.create-change.result == 'success' ||
+              needs.validate-change.result == 'success'
+            )
+          )
+        )
+      )
+    needs:
+      - "config-parse"
+      - "prepare-package"
+      - "create-change"
+      - "validate-change"
+    steps:
+      - name: Get Parameters
+        id: parse_info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const outputs = JSON.parse(${{ toJson(needs.config-parse.outputs.full-output) }})
+            const environment = '${{ inputs.environment }}'
+            const splitKey = `deploy-k8s-${environment}-`
+
+            Object.keys(outputs).forEach(function(key) {
+              const value = outputs[key].trim();
+              console.log(`${key} = ${value}`);
+              core.setOutput(key, value)
+              if (key.includes(`deploy-k8s-${environment}`)) {
+                  const keyValue =  key.split(splitKey).pop();
+                  console.log(`* ${keyValue} = ${value}`);
+                  core.setOutput(keyValue, value)
+              }
+            });
+
+            console.log('Os parâmetros que aparecem com asterisco(*) na frente serão os parametros selecionados de acordo com o environment.')
+
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: "${{ steps.parse_info.outputs.deploy-k8s-version }}"
+        id: install-kubectl
+
+      - name: Checkout source
+        # uses: itau-corp/itau-up2-reusable-workflows-cd-k8s/.github/actions/checkout_branch@v1
+        uses: itau-corp/itau-up2-reusable-workflows-cd-k8s/.github/actions/checkout_branch@fix/checkout_hom
+        with:
+          rollback: ${{ inputs.rollback }}
+          deploy-type: ${{ inputs.deploy-type }}
+          environment: ${{ inputs.environment }}
+          versao: ${{ inputs.versao }}
+
+      - name: validate change
+        if: |
+          !inputs.rollback &&
+          inputs.deploy-type == 'deploy' &&
+          inputs.environment == 'prod'
+        uses: itau-corp/itau-up2-nested-reusable-change-management/.github/actions/validate@v1
+        with:
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          GOVCLOUDPUB_PROD_SNOW: ${{ secrets.GOVCLOUDPUB_PROD_SNOW }}
+          GOVCLOUDPUB_PROD_CLIENT_ID: ${{ secrets.GOVCLOUDPUB_PROD_CLIENT_ID }}
+          GOVCLOUDPUB_PROD_SECRET_ID: ${{ secrets.GOVCLOUDPUB_PROD_SECRET_ID }}
+          GOVCLOUDPUB_PROD_STS_HOST: ${{ vars.GOVCLOUDPUB_PROD_STS_HOST }}
+          GOVCLOUDPUB_PROD_APIGATEWAY_HOST: ${{ vars.GOVCLOUDPUB_PROD_APIGATEWAY_HOST }}
+
+      - name: validate rollback
+        uses: itau-corp/itau-up2-nested-reusable-change-management/.github/actions/rollback@v1
+        if: |
+          (
+            inputs.rollback ||
+            inputs.deploy-type == 'reject'
+          ) &&
+          inputs.environment == 'prod'
+        with:
+          APPLICATION_ID: ${{ secrets.APPLICATION_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          GOVCLOUDPUB_PROD_SNOW: ${{ secrets.GOVCLOUDPUB_PROD_SNOW }}
+          GOVCLOUDPUB_PROD_CLIENT_ID: ${{ secrets.GOVCLOUDPUB_PROD_CLIENT_ID }}
+          GOVCLOUDPUB_PROD_SECRET_ID: ${{ secrets.GOVCLOUDPUB_PROD_SECRET_ID }}
+          GOVCLOUDPUB_PROD_STS_HOST: ${{ vars.GOVCLOUDPUB_PROD_STS_HOST }}
+          GOVCLOUDPUB_PROD_APIGATEWAY_HOST: ${{ vars.GOVCLOUDPUB_PROD_APIGATEWAY_HOST }}
+
+      - name: AWS Components
+        if: ( needs.prepare-package.outputs.aws )
+        run: |
+          if [ "${{ inputs.environment }}" == "dev" ]; then
+            echo "AWS_ACCOUNTID=${{ steps.parse_info.outputs.deploy-aws-dev-account }}" >> $GITHUB_ENV
+            echo "AWS_COMPUTE_PLATFORM=${{ steps.parse_info.outputs.deploy-aws-dev-eks-compute-platform }}" >> $GITHUB_ENV
+            echo "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-dev-region }}" >> $GITHUB_ENV
+            export "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-dev-region }}"
+          elif [ "${{ inputs.environment }}" == "hom" ]; then
+            echo "AWS_ACCOUNTID=${{ steps.parse_info.outputs.deploy-aws-hom-account }}" >> $GITHUB_ENV
+            echo "AWS_COMPUTE_PLATFORM=${{ steps.parse_info.outputs.deploy-aws-hom-eks-compute-platform }}" >> $GITHUB_ENV
+            echo "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-hom-region }}" >> $GITHUB_ENV
+            export "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-hom-region }}"
+          elif [ "${{ inputs.environment }}" == "prod" ]; then
+            echo "AWS_ACCOUNTID=${{ steps.parse_info.outputs.deploy-aws-prod-account }}" >> $GITHUB_ENV
+            echo "AWS_COMPUTE_PLATFORM=${{ steps.parse_info.outputs.deploy-aws-prod-eks-compute-platform }}" >> $GITHUB_ENV
+            echo "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-prod-region }}" >> $GITHUB_ENV
+            export "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-prod-region }}"
+          else
+            echo "Ambiente nao mapeado!"
+            exit 1
+          fi
+          if [[ "${{ steps.parse_info.outputs.deploy-aws-eks-aws-region }}" != "" && ${AWS_REGION} == "" ]]; then
+            echo "AWS_REGION=${{ steps.parse_info.outputs.deploy-aws-eks-aws-region }}" >> $GITHUB_ENV
+          fi
+
+      - name: Role Info
+        if: ( needs.prepare-package.outputs.aws )
+        run: |
+          if [ "${{ steps.parse_info.outputs.deploy-aws-eks-custom-role }}" == "" ]; then
+            echo $GITHUB_REPOSITORY_ID
+            echo "ROLE_NAME=itau-github-repo-$GITHUB_REPOSITORY_ID" >> $GITHUB_ENV
+          else
+            echo "ROLE_NAME=${{ steps.parse_info.outputs.deploy-aws-eks-custom-role }}" >> $GITHUB_ENV
+          fi
+
+      - name: Assume Role
+        if: ( needs.prepare-package.outputs.aws )
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: "arn:aws:iam::${{ env.AWS_ACCOUNTID }}:role/${{ env.ROLE_NAME }}"
+          aws-region: ${{ env.AWS_REGION }}
+          role-skip-session-tagging: true
+          role-duration-seconds: 3600
+
+      - name: Docker Login to Artifactory
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'FARGATE' || steps.parse_info.outputs.deploy-codepipeline-legacy
+        uses: docker/login-action@v1
+        with:
+          registry: itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker.${{ needs.prepare-package.outputs.artifact-docker-url }}
+          username: ${{ secrets.ADU }}
+          password: ${{ secrets.ADPEP }}
+
+      - name: Pull Image from Artifactory
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'FARGATE' || steps.parse_info.outputs.deploy-codepipeline-legacy
+        run: docker pull ${{ needs.prepare-package.outputs.new-image }}
+
+      - name: Login to Amazon ECR
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'FARGATE' || steps.parse_info.outputs.deploy-codepipeline-legacy
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+          
+      - name: Create or replace ECR repository
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'FARGATE' || steps.parse_info.outputs.deploy-codepipeline-legacy
+        id: create-ecr
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "itau-corp-${{ steps.parse_info.outputs.itau-repo-name }}"
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+        run: |
+          # Build a docker container and
+          ECR_REPOSITORY=$(echo ${ECR_REPOSITORY} | tr '[:upper:]' '[:lower:]' )
+          aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} || aws ecr create-repository --repository-name ${ECR_REPOSITORY} --image-scanning-configuration scanOnPush=true
+
+      - name: Push Image
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'FARGATE' || steps.parse_info.outputs.deploy-codepipeline-legacy
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: "itau-corp-${{ steps.parse_info.outputs.itau-repo-name }}"
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+        run: |
+          docker tag ${{ needs.prepare-package.outputs.new-image }} $ECR_REGISTRY/$ECR_REPOSITORY:${{ needs.prepare-package.outputs.container-version }}
+          echo "NEW_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:${{ needs.prepare-package.outputs.container-version }}" >> $GITHUB_ENV
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ needs.prepare-package.outputs.container-version }}
+
+      - name: Set EC2 Image
+        if: |
+          env.AWS_COMPUTE_PLATFORM == 'EC2' && !steps.parse_info.outputs.deploy-codepipeline-legacy
+        run: echo "NEW_IMAGE=${{ needs.prepare-package.outputs.new-image }}" >> $GITHUB_ENV
+
+      - name: Update kubeconfig - EKS
+        if: ( needs.prepare-package.outputs.aws )
+        id: kubeconfig
+        run: |
+          aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ steps.parse_info.outputs.cluster }} --role-arn "arn:aws:iam::${{ env.AWS_ACCOUNTID }}:role/itau-github-eks-role" --alias ${{ steps.parse_info.outputs.cluster }}
+
+      - name: Get kubeconfig
+        run: |
+          export "kube=$(cat $HOME/.kube/config)"
+          echo "kube<<EOF" >> $GITHUB_ENV
+          echo "$kube" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo ${kube}
+
+      - uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: |
+            ${{ env.kube }}
+          context: ${{ steps.parse_info.outputs.cluster }}
+
+      - name: Check K8S connection
+        run: |
+          kubectl version --client
+          kubectl --insecure-skip-tls-verify create ns ${{ steps.parse_info.outputs.namespace }} || true
+          kubectl --insecure-skip-tls-verify get namespaces
+
+      - name: Python Install yq
+        if: |
+          steps.parse_info.outputs.deploy-codepipeline-legacy && steps.parse_info.outputs.deploy-ignore-iupipes-namespace
+        run: |
+          #instala yq e atualiza o PATH com os binários
+          python -m pip install --upgrade pip
+          python -m pip install yq --ignore-installed
+          echo "/home/ec2-user/.local/bin" >> $GITHUB_PATH
+
+      - name: Echo new deployment flags
+        if: |
+          steps.parse_info.outputs.deploy-codepipeline-legacy && steps.parse_info.outputs.deploy-ignore-iupipes-namespace
+        run: |
+          echo "Ignorar namespace no iupipes.yml? -> ${{ steps.parse_info.outputs.deploy-ignore-iupipes-namespace }}"
+          echo "Deploy legado codepipeline? -> ${{ steps.parse_info.outputs.deploy-codepipeline-legacy }}"
+
+      - name: Set Application Image
+        id: set-deployment-method
+        run: |
+          if [[ $(find ./ -name parameters-*.json) != "" && "${{ steps.parse_info.outputs.deploy-codepipeline-legacy }}" == 'true' && "${{ steps.parse_info.outputs.deploy-ignore-iupipes-namespace }}" == 'true' ]]
+          then
+            echo "Utilizando deployment legado Codepipeline"
+            PARAMETERS="${{ steps.parse_info.outputs.deploy-k8s-infra-path }}/parameters-${{ inputs.environment }}.json"
+            K8S_BUILD_DIR="${{ steps.parse_info.outputs.deploy-k8s-infra-path }}/eks/${{ inputs.environment }}/generated_files"
+            #transforma os parameters em env vars
+            export $(cat "$PARAMETERS" | jq -r '.Parameters | to_entries[] | .key + "=\(.value|tostring)"')
+            export IMAGE_TAG="${{ env.NEW_IMAGE }}"
+
+            mkdir -p $K8S_BUILD_DIR
+            #hidrata os ymls com as variaveis de ambiente e cria os arquivos de deployment
+            ARQ_TEMPLATES="$(find ${{ steps.parse_info.outputs.deploy-k8s-infra-path }}/eks -name '*.y*ml')"
+            echo "Arquivos templates encontrados:"
+            for file in $ARQ_TEMPLATES
+            do
+              echo "- ${file}"
+              echo "==> Gerando arquivo ${K8S_BUILD_DIR}/$(basename ${file})"
+              touch "${K8S_BUILD_DIR}/$(basename ${file})"
+              envsubst <$file > ${K8S_BUILD_DIR}/$(basename ${file}); \
+            done
+            echo "Listando arquivos gerados: ls -la $K8S_BUILD_DIR"
+            ls -la $K8S_BUILD_DIR
+
+            #extrai o namespace do arquivo de deployment
+            export NAMESPACE=$(yq '. | select(.kind == "Deployment") | .metadata | if has("namespace") then .namespace else "default" end ' $K8S_BUILD_DIR/app-deployment.yml | tr -d '"')
+            #deixa explicito que o namespace nao foi encontrado no arquivo esperado e utiliza o default como padrao
+            if [[ "$NAMESPACE" == "default" ]]
+            then
+              echo -e "Flag que ignora o namespace no arquivo .iupipes.yml setada porém, nenhum namespace foi declarado em app-deployment.yml.\nAssumindo namespace 'default' para deployment."
+            fi
+            echo "Namespace -> $NAMESPACE"
+            #define as variaveis de deployment namespace e folder
+            echo "deployment-folder=$K8S_BUILD_DIR" >> $GITHUB_OUTPUT
+            echo "deployment-namespace=$NAMESPACE" >> $GITHUB_OUTPUT
+          else
+            echo "Utilizando deployment padrão"
+            echo "Namespace -> ${{ steps.parse_info.outputs.namespace }}"
+            sed -i "s,IMG,${{ env.NEW_IMAGE }},g" "${{ steps.parse_info.outputs.deploy-k8s-infra-path }}/${{ inputs.environment }}/kubernetes.yml" || echo "Não existe kubernetes.yml no repo."
+            #define as variaveis de deployment namespace e folder
+            echo "deployment-folder=${{ steps.parse_info.outputs.deploy-k8s-infra-path }}/${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "deployment-namespace=${{ steps.parse_info.outputs.namespace }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy method
+        run: |
+          echo "Deployment folder -> ${{ steps.set-deployment-method.outputs.deployment-folder }}"
+          test ${{ steps.parse_info.outputs.deploy-codepipeline-legacy }} == 'true' && echo "É legado? -> true" || echo "É legado? -> false"
+          echo "Namespace -> ${{ steps.set-deployment-method.outputs.deployment-namespace }}"
+          ls -ltr "${{ steps.set-deployment-method.outputs.deployment-folder }}"
+
+      - name: Set imagePullSecret
+        uses: azure/k8s-create-secret@v4
+        if: |
+          !steps.parse_info.outputs.deploy-codepipeline-legacy
+        with:
+          namespace: "${{ steps.parse_info.outputs.namespace }}"
+          secret-name: artifactory-login
+          container-registry-url: "itau-${{ steps.parse_info.outputs.itau-sigla  }}-docker.${{ needs.prepare-package.outputs.artifact-docker-url }}"
+          container-registry-username: ${{ secrets.ADU }}
+          container-registry-password: ${{ secrets.ADPEP }}
+        id: create-secret
+
+      - name: Set pull secret
+        id: set-pull-secret
+        run: |
+          #define o nome do secret a ser utilizado para o pull de imagens
+          if [[ "${{ steps.parse_info.outputs.deploy-codepipeline-legacy }}" == 'true' ]]
+          then
+            echo "secret-name=dummy-test-secret" >> $GITHUB_OUTPUT
+          else
+            echo "secret-name=artifactory-login" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Secret name
+        run: |
+          echo "Secret name -> ${{ steps.set-pull-secret.outputs.secret-name }}"
+
+      # Reject k8s bluegreen/canary
+      - name: Reject K8S - BlueGreen|Canary
+        if: steps.parse_info.outputs.deploy-k8s-destroy == 'true' && steps.parse_info.outputs.strategy != '' && steps.parse_info.outputs.deployment-type != 'helm'
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+            ${{ steps.set-deployment-method.outputs.deployment-folder }}
+          imagepullsecrets: |
+            ${{ steps.set-pull-secret.outputs.secret-name }}
+          strategy: ${{ steps.parse_info.outputs.strategy }}
+          namespace: ${{ steps.set-deployment-method.outputs.deployment-namespace }}
+          action: "reject"
+
+      ### TODO CANARY
+      - name: Deploy K8S - canary
+        if: steps.parse_info.outputs.strategy == 'canary' && steps.parse_info.outputs.deploy-k8s-destroy == 'false' && steps.parse_info.outputs.deployment-type != 'helm'
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+            ${{ steps.set-deployment-method.outputs.deployment-folder }}
+          imagepullsecrets: |
+            ${{ steps.set-pull-secret.outputs.secret-name }}
+          strategy: ${{ steps.parse_info.outputs.strategy }}
+          namespace: ${{ steps.set-deployment-method.outputs.deployment-namespace }}
+          action: ${{ inputs.deploy-type }}
+          percentage: ${{ steps.parse_info.outputs.percentage }}
+          route-method: ${{ steps.parse_info.outputs.route-method }}
+          version-switch-buffer: ${{ steps.parse_info.outputs.wait-time }}
+          traffic-split-method: ${{ steps.parse_info.outputs.split-method }}
+          baseline-and-canary-replicas: 4
+
+      - name: Deploy K8S - blue-green
+        if: steps.parse_info.outputs.strategy == 'blue-green' && steps.parse_info.outputs.deploy-k8s-destroy == 'false' && steps.parse_info.outputs.deployment-type != 'helm'
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+            ${{ steps.set-deployment-method.outputs.deployment-folder }}
+          namespace: ${{ steps.set-deployment-method.outputs.deployment-namespace }}
+          imagepullsecrets: |
+            ${{ steps.set-pull-secret.outputs.secret-name }}
+          route-method: ${{ steps.parse_info.outputs.route-method }}
+          strategy: ${{ steps.parse_info.outputs.strategy }}
+          action: ${{ inputs.deploy-type }}
+          version-switch-buffer: ${{ steps.parse_info.outputs.wait-time }}
+
+      - name: Deploy K8S - No strategy
+        if: steps.parse_info.outputs.strategy == '' && steps.parse_info.outputs.deploy-k8s-destroy == 'false' && steps.parse_info.outputs.deployment-type != 'helm'
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+            /modified_manifest_cell-1_normal.yaml
+          namespace: ${{ steps.set-deployment-method.outputs.deployment-namespace }}
+          imagepullsecrets: |
+            ${{ steps.set-pull-secret.outputs.secret-name }}
+          action: ${{ inputs.deploy-type }}
+
+      # Executa kubectl delete
+      # Necessário pois o reject para blue-green e canary, deixa o service para trás.
+      - name: Destroy K8S
+        if: steps.parse_info.outputs.deploy-k8s-destroy == 'true' && steps.parse_info.outputs.deployment-type != 'helm'
+        run: |
+          kubectl delete --ignore-not-found=true -n ${{ steps.set-deployment-method.outputs.deployment-namespace }} -f ${{ steps.set-deployment-method.outputs.deployment-folder }}
+
+      #### Helm ####
+      - name: Setup Helm
+        if: steps.parse_info.outputs.deployment-type == 'helm'
+        id: setup_helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "${{ steps.parse_info.outputs.deploy-k8s-helm-version }}"
+  
+      - name: Helm Release Name
+        if: steps.parse_info.outputs.deployment-type == 'helm'
+        env:
+          HELM: ${{ steps.setup_helm.outputs.helm-path }}
+        shell: bash
+        run: |
+          if [[ "${{ steps.parse_info.outputs.release-name }}" == "" ]]; then
+            echo "RELEASE_NAME= ${{ steps.parse_info.outputs.itau-repo-name }}" >> $GITHUB_ENV
+            export "RELEASE_NAME=${{ steps.parse_info.outputs.itau-repo-name }}"
+          else
+            echo "RELEASE_NAME=${{ steps.parse_info.outputs.release-name }}" >> $GITHUB_ENV
+            export "RELEASE_NAME=${{ steps.parse_info.outputs.release-name }}"
+          fi
+
+          if [[ "${{ inputs.env-tmp }}" != "" ]]; then
+            echo "RELEASE_NAME=$RELEASE_NAME-$GITHUB_SHA" >> $GITHUB_ENV
+            export "RELEASE_NAME=$RELEASE_NAME-$GITHUB_SHA"
+          fi
+
+          echo "Release Name: $RELEASE_NAME"
+  
+      - name: Helm Deploy K8S
+        if: steps.parse_info.outputs.deploy-k8s-destroy == 'false' && steps.parse_info.outputs.deployment-type == 'helm'
+        env:
+          HELM: ${{ steps.setup_helm.outputs.helm-path }}
+          IUPIPES_IMAGE_NAME: ${{ needs.prepare-package.outputs.image-registry }}
+          IUPIPES_IMAGE_TAG: ${{ needs.prepare-package.outputs.container-version }}
+          IUPIPES_REPOSITORY_NAME: ${{ steps.parse_info.outputs.itau-repo-name }}
+          INFRA_PATH: ${{ steps.parse_info.outputs.deploy-k8s-infra-path }}
+        shell: bash
+        run: |
+          IUPIPES_VARS=$(printf '${%s} ' $(env | cut -d= -f1 | grep '^IUPIPES_'))
+          GITHUB_VARS=$(printf '${%s} ' $(env | cut -d= -f1 | grep '^GITHUB_'))
+          envsubst "$IUPIPES_VARS $GITHUB_VARS" < ./$INFRA_PATH/${{ inputs.environment }}/values.yaml > /tmp/values.yaml
+          mv /tmp/values.yaml ./$INFRA_PATH/${{ inputs.environment }}/values.yaml
+          cat ./$INFRA_PATH/${{ inputs.environment }}/values.yaml
+
+          $HELM upgrade --install --force $RELEASE_NAME ./$INFRA_PATH/${{ inputs.environment }}/ \
+            --values ./$INFRA_PATH/${{ inputs.environment }}/values.yaml \
+            --set imagePullSecrets={artifactory-login} \
+            --namespace ${{ steps.parse_info.outputs.namespace }} \
+            --dependency-update \
+            --wait \
+            ${{ steps.parse_info.outputs.helm-parameters }}
+  
+      - name: Helm Uninstall K8S
+        if: steps.parse_info.outputs.deploy-k8s-destroy == 'true' && steps.parse_info.outputs.deployment-type == 'helm'
+        env:
+          HELM: ${{ steps.setup_helm.outputs.helm-path }}
+        shell: bash
+        run: |
+          $HELM uninstall ${{ env.RELEASE_NAME }} \
+            --namespace ${{ steps.parse_info.outputs.namespace }} \
+            --wait \
+            ${{ steps.parse_info.outputs.helm-parameters }}
+
+
+  close-change:
+    if: |
+      (
+        !cancelled() &&
+        needs.K8SDeployment.result == 'success'
+      ) && 
+      inputs.deploy-type == 'deploy' &&
+      inputs.environment == 'prod'
+    needs:
+      - K8SDeployment
+    uses: itau-corp/itau-up2-nested-reusable-change-management/.github/workflows/close.yml@v1
+    with:
+      pipeline-type: 'aplicacoes'
+      is-rollback: ${{ inputs.rollback }}
+    secrets: inherit
+ 
