@@ -1,13 +1,4 @@
-name: "2 - [DEV] Build & Deploy"
-
-permissions:
-  id-token: write
-  contents: write
-  issues: write
-  pull-requests: write
-  checks: write
-  actions: write
-  packages: read
+name: "2 - [DEV] Build & Deploy Gradual"
 
 on:
   pull_request:
@@ -200,25 +191,34 @@ on:
       env-tmp:
         required: false
         type: string
-    secrets:
-      APPLICATION_ID:
-        required: true
-      APP_PRIVATE_KEY:
-        required: true
-      ADU:
-        required: true
-      ADPEP:
-        required: true
-      APU:
-        required: true
-        
-    outputs:
-      new-tag:
-        description: "Nome da nova versao que será gerada."
-        value: ${{ jobs.prepare-package.outputs.new-tag }}
-      previous-tag:
-        description: "Nome da versão atual."
-        value: ${{ jobs.prepare-package.outputs.previous-tag }}
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+  pull-requests: write
+  checks: write
+  actions: write
+  packages: read
+  
+# secrets:
+#   APPLICATION_ID:
+#     required: true
+#   APP_PRIVATE_KEY:
+#     required: true
+#   ADU:
+#     required: true
+#   ADPEP:
+#     required: true
+#   APU:
+#     required: true
+    
+# outputs:
+#   new-tag:
+#     description: "Nome da nova versao que será gerada."
+#     value: ${{ jobs.prepare-package.outputs.new-tag }}
+#   previous-tag:
+#     description: "Nome da versão atual."
+#     value: ${{ jobs.prepare-package.outputs.previous-tag }}
 
 env:
   AWS_REGION: sa-east-1  # Centralized AWS region
