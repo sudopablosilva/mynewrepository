@@ -1,7 +1,5 @@
-apiVersion: glue.aws.upbound.io/v1beta1
+apiVersion: glue.aws.upbound.io/v1beta2
 kind: Job
-metadata:
-  name: crossplanegluejob
 spec:
   forProvider:
     command:
@@ -10,6 +8,7 @@ spec:
     region: sa-east-1
     roleArn: "arn:aws:iam::730335273876:role/dataplanegluejobrole"
     glueVersion: "4.0"
-    
+    numberOfWorkers: 2
+    workerType: "G.1X"
   providerConfigRef:
     name: irsa-providerconfig
