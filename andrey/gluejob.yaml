@@ -25,7 +25,7 @@ kind: Provider
 metadata:
   name: provider-aws-glueandrey
 spec:
-  package: xpkg.upbound.io/upbound/provider-aws-glue:v1.9.0
+  package: xpkg.upbound.io/upbound/provider-aws-glue:v1.8.0
   runtimeConfigRef:
     name: defaultandrey
 ---
