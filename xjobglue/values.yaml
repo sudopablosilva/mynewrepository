@@ -1,5 +1,5 @@
 xjobglues:
-  - name: jobglue-1
-    namespace: customnamespace1
+  - name: h-jobgluek-1
+    namespace: h-customnamespace-1
     scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
     pythonVersion: "3"
