@@ -1,46 +1,46 @@
-apiVersion: pkg.crossplane.io/v1beta1
-kind: DeploymentRuntimeConfig
-metadata:
-  name: defaultandrey
-spec:
-  deploymentTemplate:
-    spec:
-      replicas: 1
-      selector: {}
-      template:
-        spec:
-          containers:
-            - name: package-runtime
-              args:
-              - --debug
-          securityContext:
-            fsGroup: 2000
-  serviceAccountTemplate:
-    metadata:
-      annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::211125471568:role/control-plane-admin
----
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
-metadata:
-  name: provider-aws-glueandrey
-spec:
-  package: xpkg.upbound.io/upbound/provider-aws-glue:v1.8.0
-  runtimeConfigRef:
-    name: defaultandrey
----
-apiVersion: aws.upbound.io/v1beta1
-kind: ProviderConfig
-metadata:
-  name: providerconfigandrey
-spec:
-  credentials:
-    source: WebIdentity
-    webIdentity:
-      roleARN: "arn:aws:iam::211125471568:role/control-plane-admin"
-  assumeRoleChain:
-    - roleARN: "arn:aws:iam::730335273876:role/control-plane-execution"
----
+# apiVersion: pkg.crossplane.io/v1beta1
+# kind: DeploymentRuntimeConfig
+# metadata:
+#   name: defaultandrey
+# spec:
+#   deploymentTemplate:
+#     spec:
+#       replicas: 1
+#       selector: {}
+#       template:
+#         spec:
+#           containers:
+#             - name: package-runtime
+#               args:
+#               - --debug
+#           securityContext:
+#             fsGroup: 2000
+#   serviceAccountTemplate:
+#     metadata:
+#       annotations:
+#         eks.amazonaws.com/role-arn: arn:aws:iam::211125471568:role/control-plane-admin
+# ---
+# apiVersion: pkg.crossplane.io/v1
+# kind: Provider
+# metadata:
+#   name: provider-aws-glueandrey
+# spec:
+#   package: xpkg.upbound.io/upbound/provider-aws-glue:v1.8.0
+#   runtimeConfigRef:
+#     name: defaultandrey
+# ---
+# apiVersion: aws.upbound.io/v1beta1
+# kind: ProviderConfig
+# metadata:
+#   name: providerconfigandrey
+# spec:
+#   credentials:
+#     source: WebIdentity
+#     webIdentity:
+#       roleARN: "arn:aws:iam::211125471568:role/control-plane-admin"
+#   assumeRoleChain:
+#     - roleARN: "arn:aws:iam::730335273876:role/control-plane-executionandrey"
+# ---
 apiVersion: glue.aws.upbound.io/v1beta2
 kind: Job
 metadata:
@@ -56,4 +56,4 @@ spec:
     numberOfWorkers: 2
     workerType: "G.1X"
   providerConfigRef:
-    name: providerconfigandrey
+    name: irsa-providerconfig
