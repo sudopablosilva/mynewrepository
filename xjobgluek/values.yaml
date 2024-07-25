@@ -1,4 +1,4 @@
-xjobglues: []
+# xjobglues: []
 xjobglues:
   - name: k-jobgluek-1
     namespace: jobsnoturnos
