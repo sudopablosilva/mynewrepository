@@ -14,3 +14,20 @@ spec:
     workerType: "G.1X"
   providerConfigRef:
     name: irsa-providerconfig
+---
+apiVersion: glue.aws.upbound.io/v1beta2
+kind: Job
+metadata:
+  name: gluejobandrey2
+spec:
+  forProvider:
+    command:
+      scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
+      pythonVersion: "3.9"  
+    region: sa-east-1
+    roleArn: "arn:aws:iam::730335273876:role/dataplanegluejobrole"
+    glueVersion: "4.0"
+    numberOfWorkers: 2
+    workerType: "G.1X"
+  providerConfigRef:
+    name: irsa-providerconfig
