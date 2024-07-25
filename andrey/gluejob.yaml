@@ -1,3 +1,46 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: defaultandrey
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          containers:
+            - name: package-runtime
+              args:
+              - --debug
+          securityContext:
+            fsGroup: 2000
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::211125471568:role/control-plane-admin
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-glueandrey
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-glue:v1.9.0
+  runtimeConfigRef:
+    name: defaultandrey
+---
+apiVersion: aws.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: providerconfigandrey
+spec:
+  credentials:
+    source: WebIdentity
+    webIdentity:
+      roleARN: "arn:aws:iam::211125471568:role/control-plane-admin"
+  assumeRoleChain:
+    - roleARN: "arn:aws:iam::730335273876:role/control-plane-execution"
+---
 apiVersion: glue.aws.upbound.io/v1beta2
 kind: Job
 metadata:
@@ -13,21 +56,4 @@ spec:
     numberOfWorkers: 2
     workerType: "G.1X"
   providerConfigRef:
-    name: irsa-providerconfig
----
-apiVersion: glue.aws.upbound.io/v1beta2
-kind: Job
-metadata:
-  name: gluejobandrey2
-spec:
-  forProvider:
-    command:
-      scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
-      pythonVersion: "3.9"  
-    region: sa-east-1
-    roleArn: "arn:aws:iam::730335273876:role/dataplanegluejobrole"
-    glueVersion: "4.0"
-    numberOfWorkers: 2
-    workerType: "G.1X"
-  providerConfigRef:
-    name: irsa-providerconfig
+    name: providerconfigandrey
