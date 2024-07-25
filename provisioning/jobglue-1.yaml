@@ -1,0 +1,7 @@
+apiVersion: itau.crossplane/v1alpha1
+kind: XJobGlue
+metadata:
+  name: jobglue-1
+spec:
+  scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
+  pythonVersion: "3"
