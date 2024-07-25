@@ -1,0 +1,9 @@
+xjobglues:
+  - name: jobglue-1
+    namespace: customnamespace1
+    scriptLocation: "s3://custombucket/scripts/customjob1.py"
+    pythonVersion: "3"
+  - name: jobglue-2
+    namespace: customnamespace2
+    scriptLocation: "s3://custombucket/scripts/customjob2.py"
+    pythonVersion: "3.8"
