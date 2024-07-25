@@ -1,6 +1,6 @@
-xjobglues: []
-# xjobglues:
-#   - name: k-jobgluek-1
-#     namespace: jobsnoturnos
-#     scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
-#     pythonVersion: "3"
+# xjobglues: []
+xjobglues:
+  - name: k-jobgluek-1
+    namespace: jobsnoturnos
+    scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
+    pythonVersion: "3"
