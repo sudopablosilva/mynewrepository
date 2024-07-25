@@ -3,7 +3,3 @@ xjobglues:
     namespace: jobsnoturnos
     scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
     pythonVersion: "3"
-  - name: k-jobgluek-2
-    namespace: jobsnoturnos
-    scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
-    pythonVersion: "3"
