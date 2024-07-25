@@ -1,0 +1,9 @@
+apiVersion: v2
+name: consumer-xjobglue
+description: A Helm chart for consuming the xjobgluetemplate chart
+version: 0.1.0
+appVersion: "1.0"
+dependencies:
+  - name: xjobgluetemplate
+    version: "0.1.0"
+    repository: "https://sudopablosilva.github.io/helmcharts"
