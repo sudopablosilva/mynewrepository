@@ -3,3 +3,7 @@ xjobglues:
     namespace: k-customnamespace-1
     scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
     pythonVersion: "3"
+  - name: k-jobgluek-2
+    namespace: k-customnamespace-1
+    scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
+    pythonVersion: "3"
