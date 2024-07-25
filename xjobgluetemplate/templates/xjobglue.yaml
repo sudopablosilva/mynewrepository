@@ -1,0 +1,22 @@
+# # ONE JOB
+# apiVersion: itau.crossplane/v1alpha1
+# kind: XJobGlue
+# metadata:
+#   name: {{ .Values.name }}
+#   namespace: {{ .Values.namespace }}
+# spec:
+#   scriptLocation: "{{ .Values.scriptLocation }}"
+#   pythonVersion: "{{ .Values.pythonVersion }}"
+
+# MULTIPLE JOBS
+{{- range .Values.xjobglues }}
+apiVersion: itau.crossplane/v1alpha1
+kind: XJobGlue
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+spec:
+  scriptLocation: "{{ .scriptLocation }}"
+  pythonVersion: "{{ .pythonVersion }}"
+---
+{{- end }}

@@ -1,0 +1,17 @@
+The following XJobGlue resources have been successfully created:
+
+{{- range .Values.xjobglues }}
+- Name: {{ .name }}
+  Namespace: {{ .namespace }}
+  Script Location: {{ .scriptLocation }}
+  Python Version: {{ .pythonVersion }}
+{{- end }}
+
+To view the status of the XJobGlue resources, run the following commands:
+
+{{- range .Values.xjobglues }}
+kubectl get xjobglue {{ .name }} -n {{ .namespace }}
+{{- end }}
+
+For further information, refer to the Crossplane documentation:
+https://crossplane.io/docs/
