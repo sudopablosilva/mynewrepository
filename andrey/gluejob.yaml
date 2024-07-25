@@ -49,7 +49,7 @@ spec:
   forProvider:
     command:
       scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
-      pythonVersion: "3.9"  
+      pythonVersion: "3"  
     region: sa-east-1
     roleArn: "arn:aws:iam::730335273876:role/dataplanegluejobrole"
     glueVersion: "4.0"
