@@ -1,0 +1,15 @@
+apiVersion: glue.aws.upbound.io/v1beta1
+kind: Job
+metadata:
+  name: crossplanegluejob
+spec:
+  forProvider:
+    command:
+      scriptLocation: "s3://dataplanegluejobscripts/scripts/myconvertionjob.py"
+      pythonVersion: "3.9"  
+    region: sa-east-1
+    roleArn: "arn:aws:iam::730335273876:role/dataplanegluejobrole"
+    glueVersion: "4.0"
+    
+  providerConfigRef:
+    name: irsa-providerconfig
