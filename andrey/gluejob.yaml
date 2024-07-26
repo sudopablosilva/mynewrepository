@@ -44,7 +44,7 @@
 apiVersion: glue.aws.upbound.io/v1beta2
 kind: Job
 metadata:
-  name: gluejobandrey3
+  name: gluejobandrey
 spec:
   forProvider:
     command:
