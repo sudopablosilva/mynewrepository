@@ -1,0 +1,40 @@
+# cat <<EOF | kubectl apply -f -
+# apiVersion: apiextensions.crossplane.io/v1
+# kind: Composition
+# metadata:
+#   name: functionnetworkcomposition
+# spec:
+#   compositeTypeRef:
+#     apiVersion: networking.example.org/v1alpha1
+#     kind: XFunctionNetwork
+#   resources:
+#   - base:
+#       apiVersion: networking.example.org/v1alpha1
+#       kind: XNetwork
+#       spec:
+#         forProvider:
+#           vpcId: "vpc-0b74b740d66f8c6dd"
+#   - base:
+#       apiVersion: lambda.aws.upbound.io/v1beta1
+#       kind: Function
+#       spec:
+#         forProvider:
+#           region: sa-east-1
+#           runtime: python3.10
+#           handler: lambda.main.lambda_handler
+#           s3Bucket: mydataplaneresources
+#           s3Key: lambda.zip
+#           role: "arn:aws:iam::730335273876:role/service-role/myfunction-role-qhgknsqv"
+#         providerConfigRef:
+#           name: irsa-providerconfig
+#     # patches:
+#     # - fromFieldPath: "spec.functionName"
+#     #   toFieldPath: "spec.forProvider.functionName"
+# EOF
+
+apiVersion: networking.example.org/v1alpha1
+kind: XFunctionNetwork
+metadata:
+  name: my-crossplane-function-and-network-with-gitops
+spec:
+  functionName: "my-crossplane-function-with-gitops"
