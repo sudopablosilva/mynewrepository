@@ -35,9 +35,9 @@ jobs:
           script: return JSON.stringify('{"status":"ok"}', null, 2)
           # result-encoding: string
       - name: Get result
-        run: echo "${{steps.set-result.outputs.result}}"
+        run: echo "${{steps.set-result.outputs.result.status}}"
       - name: Get result
-        run: echo "${{steps.download_yaml.outputs.result}}"
+        run: echo JSON.parse("${{ toJson(steps.set-result.outputs.result.status)}}")
         
       # - name: Printing github context
       #   run: |
