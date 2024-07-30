@@ -20,29 +20,49 @@ jobs:
   job0:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
-        id: download_yaml
-        with:
-          script: |
-            const diff_url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.0.0/docs/examples/echoservice/echoserver-service.yaml"
-            const result = await github.request(diff_url)
-            console.log(result)
-            return "Terminou download"
-            
+
       - uses: actions/github-script@v7
         id: set-result
         with:
-          script: return JSON.stringify('{"status":"ok"}', null, 2)
-          # result-encoding: string
+          script: return "Hello!"
+          result-encoding: string
       - name: Get result
-        run: echo "${{steps.set-result.outputs.result.status}}"
-      
+        run: echo "${{steps.set-result.outputs.result}}"
       - uses: actions/github-script@v7
-        id: see_results
+        id: get-result-as-js
+        env:
+          resultado: ${{steps.set-result.outputs.result}}
         with:
           script: |
-            const payload = JSON.parse(${{ toJson(steps.set-result.outputs.result.status)}})
-            console.log(payload)
+            const {resultado} = process.env
+            console.log(`${resultado}`)
+          # result-encoding: string
+        
+      # - uses: actions/github-script@v7
+      #   id: download_yaml
+      #   with:
+      #     script: |
+      #       const diff_url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.0.0/docs/examples/echoservice/echoserver-service.yaml"
+      #       const result = await github.request(diff_url)
+      #       console.log(result)
+      #       return "Terminou download"
+            
+      # - uses: actions/github-script@v7
+      #   id: set-result
+      #   with:
+      #     script: return JSON.stringify('{"status":"ok"}', null, 2)
+      #     # result-encoding: string
+      # - name: Get result
+      #   run: echo "${{steps.set-result.outputs.result.status}}"
+      
+      # - uses: actions/github-script@v7
+      #   id: see_results
+      #   with:
+      #     script: |
+      #       const resultado = ${{ toJson(steps.set-result.outputs.result)}}
+            
+      #       const payload = JSON.parse(${{ toJson(steps.set-result.outputs.result)}})
+      #       console.log(payload)
             
       # - name: Get result
       #   run: echo 
