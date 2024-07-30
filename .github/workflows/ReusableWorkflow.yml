@@ -20,34 +20,53 @@ jobs:
   job0:
     runs-on: ubuntu-latest
     steps:
-      - name: Printing github context
-        run: |
-          echo '${{ toJson(github) }}'
-      - name: Print inputs and environment variables
-        run: |
-          echo "Printing inputs"
+      - uses: actions/github-script@v7
+        id: download_yaml
+        with:
+          script: |
+            const diff_url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.0.0/docs/examples/echoservice/echoserver-service.yaml"
+            const result = await github.request(diff_url)
+            console.log(result)
+            return "Terminou download"
+            
+      - uses: actions/github-script@v7
+        id: set-result
+        with:
+          script: return "Hello!"
+          result-encoding: string
+      - name: Get result
+        run: echo "${{steps.set-result.outputs.result}}"
+      - name: Get result
+        run: echo "${{steps.download_yaml.outputs.result}}"
+        
+      # - name: Printing github context
+      #   run: |
+      #     echo '${{ toJson(github) }}'
+      # - name: Print inputs and environment variables
+      #   run: |
+      #     echo "Printing inputs"
           
-          echo '${{ toJson(inputs) }}'
+      #     echo '${{ toJson(inputs) }}'
           
-          echo "Printing environment variables"
-          env | sort
+      #     echo "Printing environment variables"
+      #     env | sort
           
-  job1:
-    outputs:
-      myoutput: ${{ steps.step1.outputs.myoutput }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print subsys
-        id: step1
-        run: |
-          echo The subsys value is ${{ inputs.subsys}} from the ReusableWorkflow
-          echo "myoutput=myoutputvalue" >> "$GITHUB_OUTPUT"
+  # job1:
+  #   outputs:
+  #     myoutput: ${{ steps.step1.outputs.myoutput }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Print subsys
+  #       id: step1
+  #       run: |
+  #         echo The subsys value is ${{ inputs.subsys}} from the ReusableWorkflow
+  #         echo "myoutput=myoutputvalue" >> "$GITHUB_OUTPUT"
 
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
-    steps:
-      - env: 
-          OUTPUT1: ${{needs.job1.outputs.myoutput}}
-        run: |
-          echo $OUTPUT1
+  # job2:
+  #   needs: job1
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - env: 
+  #         OUTPUT1: ${{needs.job1.outputs.myoutput}}
+  #       run: |
+  #         echo $OUTPUT1
