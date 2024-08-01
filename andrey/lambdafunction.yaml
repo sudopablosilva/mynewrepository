@@ -35,6 +35,6 @@
 apiVersion: networking.example.org/v1alpha1
 kind: XFunctionNetwork
 metadata:
-  name: my-crossplane-function-and-network-with-gitops
+  name: my-crossplane-function-and-network-with-gitops2
 spec:
   functionName: "my-crossplane-function-with-gitops2"
