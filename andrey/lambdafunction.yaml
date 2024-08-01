@@ -37,4 +37,4 @@ kind: XFunctionNetwork
 metadata:
   name: my-crossplane-function-and-network-with-gitops
 spec:
-  functionName: "my-crossplane-function-with-gitops"
+  functionName: "my-crossplane-function-with-gitops2"
