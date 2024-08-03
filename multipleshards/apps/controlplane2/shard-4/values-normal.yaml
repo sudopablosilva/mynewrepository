@@ -1,0 +1,22 @@
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: shard
+            operator: In
+            values:
+              - "4"
+env:
+  - name: SHARD
+    value: "4"
+  - name: APP_NAME
+    value: "show-time"
+  - name: CLUSTER
+    value: "controlplane2"
+  - name: APP_VERSION
+    value: "<appversion>"
+labels:
+  shard: "4"
+  app: "show-time"
+  cluster: "controlplane2"
+  version: "<appversion>"
