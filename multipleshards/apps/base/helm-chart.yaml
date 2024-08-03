@@ -3,9 +3,9 @@ kind: HelmChartInflationGenerator
 metadata:
   name: extratosvcs
 helmGlobals:
-  chartHome: "https://url-do-helm-chart-base"
+  chartHome: "../../charts"
 helmCharts:
   - name: extratosvcs
     version: 1.0.0
     releaseName: extratosvcs
-    valuesFile: values.yaml
+    # valuesFile: values.yaml

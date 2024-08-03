@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/sudopablosilva/mynewrepository'
     targetRevision: HEAD
-    path: argocd/applications
+    path: multipleshards/argocd/applications
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd

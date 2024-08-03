@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/sudopablosilva/mynewrepository'
     targetRevision: HEAD
-    path: apps/controlplane
+    path: multipleshards/argocd/apps/controlplane
   destination:
     server: 'https://controlplane-cluster-url'
     namespace: controlplane
