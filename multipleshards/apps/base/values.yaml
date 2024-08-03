@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: busybox
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: shard
+            operator: In
+            values:
+              - "1"
+
+env:
+  shard: "1"
+  appName: "show-time"
+  cluster: "default-cluster"
+  appVersion: "1.0.0"
