@@ -3,12 +3,14 @@ kind: Application
 metadata:
   name: extratosvcs-shard-1-onebox
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
     repoURL: 'https://github.com/sudopablosilva/mynewrepository'
     targetRevision: HEAD
-    path: multipleshards/apps/controlplane/shard-1/onebox
+    path: multipleshards/apps/shard-1-onebox
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: extratosvcs-shard-1-onebox
