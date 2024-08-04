@@ -1,0 +1,24 @@
+helmGlobals:
+  chartHome: charts
+helmCharts:
+  - name: extratosvcs
+    version: 1.0.0
+    releaseName: extratosvcs
+    valuesInline:
+      env:
+        appName: extratosvcs
+
+  # - name: minecraft
+  #   includeCRDs: false
+  #   valuesInline:
+  #     minecraftServer:
+  #       eula: true
+  #       difficulty: hard
+  #       rcon:
+  #         enabled: true
+  #   releaseName: moria
+  #   version: 3.1.3
+  #   # repo: https://itzg.github.io/minecraft-server-chartss #Optional
+
+commonAnnotations:
+  oncallPager: 800-555-1212
