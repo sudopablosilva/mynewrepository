@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: extratosvcs-shard-3-onebox
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/sudopablosilva/mynewrepository'
+    targetRevision: HEAD
+    path: multipleshards/apps/controlplane/shard-3/onebox
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: extratosvcs-shard-3-onebox
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
