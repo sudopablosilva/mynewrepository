@@ -1,11 +1,11 @@
-helmGlobals:
-  chartHome: charts
-helmCharts:
-  - name: argocdapphelmchart
-    version: 1.0.0
-    releaseName: argocdapphelmchart
-    valuesInline:
-      env:
-        appName: argocdapphelmchart
+# helmGlobals:
+#   chartHome: charts
+# helmCharts:
+#   - name: argocdapphelmchart
+#     version: 1.0.0
+#     releaseName: argocdapphelmchart
+#     valuesInline:
+#       env:
+#         appName: argocdapphelmchart
 commonAnnotations:
   oncallPager: 800-555-1212
