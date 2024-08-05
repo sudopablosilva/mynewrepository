@@ -1,5 +1,5 @@
 apiVersion: argoproj.io/v1alpha1
-kind: argocdapphelmchart
+kind: Application
 metadata:
   name: extratosvcs-shard-1-normal
   namespace: argocd
