@@ -39,3 +39,45 @@ spec:
             configMapKeyRef:
               name: env-configmap
               key: WORKLOAD_TYPE
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.env.appName }}-deployment-3
+  labels:
+    app: {{ .Values.env.appName }}-3
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.env.appName }}-3
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.env.appName }}-3
+    spec:
+      containers:
+      - name: {{ .Values.env.appName }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        command: ["/bin/sh", "-c"]
+        args: ["while true; do date; sleep 5; done"]
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        env:
+        - name: APP_NAME
+          value: {{ .Values.env.appName }}
+        - name: SHARD
+          valueFrom:
+            configMapKeyRef:
+              name: env-configmap
+              key: SHARD
+        - name: WORKLOAD_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: env-configmap
+              key: WORKLOAD_TYPE
