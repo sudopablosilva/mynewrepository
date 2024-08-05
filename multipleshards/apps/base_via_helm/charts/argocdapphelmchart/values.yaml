@@ -2,5 +2,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   source:
-    repoURL: https://github.com/argoproj/argocd-example-apps
+    repoURL: https://github.com/sudopablosilva/mynewrepository
     targetRevision: HEAD
+    path: multipleshards/apps/shard-1-normal
