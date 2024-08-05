@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: argocdapphelmchart
 metadata:
-  name: argocdapphelmchart
+  name: extratosvcs-shard-1-normal
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/sudopablosilva/mynewrepository'
-    targetRevision: HEAD
-    path: multipleshards/argocd/applications
+    repoURL: '{{ .Values.spec.source.repoURL }}'
+    targetRevision: '{{ .Values.spec.source.targetRevision }}'
+    path: multipleshards/apps/shard-1-normal
   destination:
-    server: {{ .Values.spec.destination.server }}
+    server: '{{ .Values.spec.destination.server }}'
     namespace: argocd
   syncPolicy:
     syncOptions:
