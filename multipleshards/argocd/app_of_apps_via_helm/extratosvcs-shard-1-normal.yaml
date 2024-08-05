@@ -24,6 +24,22 @@ spec:
             spec:
               destination:
                 server: https://kubernetes.default.svc
+              source:
+                repoURL: https://github.com/sudopablosilva/mynewrepository
+                targetRevision: HEAD
+                path: multipleshards/apps/shard-1-normal
+                
+        - name: argocdapphelmchart
+          version: 1.0.0
+          releaseName: argocdapphelmchart2
+          valuesInline:
+            spec:
+              destination:
+                server: https://kubernetes.default.svc
+              source:
+                repoURL: https://github.com/sudopablosilva/mynewrepository
+                targetRevision: HEAD
+                path: multipleshards/apps/shard-1-onebox
 
       # labels:
       # - pairs:
