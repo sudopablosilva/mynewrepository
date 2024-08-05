@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocdapphelmchart
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/sudopablosilva/mynewrepository'
+    targetRevision: HEAD
+    path: multipleshards/argocd/applications
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: argocd
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

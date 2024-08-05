@@ -1,0 +1,73 @@
+apiVersion: v1
+data:
+  SHARD: "1"
+  WORKLOAD_TYPE: normal
+kind: ConfigMap
+metadata:
+  labels:
+    shard: "1"
+    workloadtype: normal
+  name: shard-1-normal-env-configmap-8t2c9t58h8
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    oncallPager: 800-555-1212
+  labels:
+    app: extratosvcs
+    shard: "1"
+    workloadtype: normal
+  name: shard-1-normal-extratosvcs-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: extratosvcs
+  template:
+    metadata:
+      annotations:
+        oncallPager: 800-555-1212
+      labels:
+        app: extratosvcs
+    spec:
+      containers:
+      - args:
+        - while true; do date; sleep 5; done
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: APP_NAME
+          value: extratosvcs
+        - name: SHARD
+          valueFrom:
+            configMapKeyRef:
+              key: SHARD
+              name: shard-1-normal-env-configmap-8t2c9t58h8
+        - name: WORKLOAD_TYPE
+          valueFrom:
+            configMapKeyRef:
+              key: WORKLOAD_TYPE
+              name: shard-1-normal-env-configmap-8t2c9t58h8
+        image: busybox:latest
+        name: extratosvcs
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: workloadtype
+              operator: In
+              values:
+              - normal
+            - key: shard
+              operator: In
+              values:
+              - "1"

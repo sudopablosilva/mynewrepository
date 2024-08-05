@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: extratosvcs-shard-1-normal-via-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/sudopablosilva/mynewrepository'
+    targetRevision: HEAD
+    path: multipleshards/apps/base_via_helm
+
+    kustomize:
+
+      helmGlobals:
+        chartHome: charts
+      helmCharts:
+        - name: argocdapphelmchart
+          version: 1.0.0
+          releaseName: argocdapphelmchart
+          valuesInline:
+            spec:
+              destination:
+                server: https://kubernetes.default.svc
+
+      # labels:
+      # - pairs:
+      #     workloadtype: normal
+      #     shard: "1"
+
+      # namePrefix: shard-1-normal-
+
+      # configMapGenerator:
+      # - name: env-configmap
+      #   literals: 
+      #   - WORKLOAD_TYPE=normal
+      #   - SHARD=1
+
+      # patches:
+      # - patch: |-
+      #     - op: add
+      #       path: /spec/template/spec/nodeAffinity
+      #       value:
+      #         requiredDuringSchedulingIgnoredDuringExecution:
+      #           nodeSelectorTerms:
+      #             - matchExpressions:
+      #                 - key: shard
+      #                   operator: In
+      #                   values:
+      #                     - "1"
+      #     - op: add
+      #       path: /spec/template/spec/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+      #       value:
+      #         key: workloadtype
+      #         operator: In
+      #         values:
+      #           - "normal"
+      #   target:
+      #     kind: Deployment
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: extratosvcs-shard-1-normal-via-helm
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
