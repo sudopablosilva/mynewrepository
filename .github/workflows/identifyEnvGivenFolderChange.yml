@@ -11,6 +11,7 @@ jobs:
         - uses: actions/checkout@v2
         - id: set-env
           run: |
+            git log --oneline
             git show ${{ github.event.before }}
             git show ${{ github.event.after }}
 
