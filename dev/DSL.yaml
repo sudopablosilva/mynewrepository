@@ -1,2 +1,3 @@
 env: dev
 myprop: myvalue
+mynewprop: mynewvalue
